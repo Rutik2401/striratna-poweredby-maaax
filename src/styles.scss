@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #D4AF37;
+  --color-gold-light: #F0D878;
+  --color-gold-dark: #B8960C;
+  --color-maroon: #800020;
+  --color-maroon-light: #A0334D;
+  --color-maroon-dark: #5C0017;
+  --color-cream: #FFF8E7;
+  --color-cream-dark: #F5EDD6;
+  --color-rose-gold: #B76E79;
+  --color-whatsapp: #25D366;
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Poppins', 'Noto Sans Devanagari', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  color: #1A1A1A;
+  background-color: #FFFFFF;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: #800020;
+  line-height: 1.3;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FFF8E7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4AF37;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B8960C;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
