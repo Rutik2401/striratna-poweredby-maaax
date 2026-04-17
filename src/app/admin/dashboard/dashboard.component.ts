@@ -22,7 +22,20 @@ import { AuthService } from '../../core/services/auth.service';
 import { OrderService } from '../../core/services/order.service';
 import { ProductService } from '../../core/services/product.service';
 import { Order } from '../../core/models/order.model';
+import { Product } from '../../core/models/product.model';
 import { CurrencyInrPipe } from '../../shared/pipes/currency-inr.pipe';
+
+type NotificationTone = 'warn' | 'danger' | 'info' | 'success';
+
+interface AdminNotification {
+  readonly id: string;
+  readonly title: string;
+  readonly body: string;
+  readonly routerLink: string[];
+  readonly tone: NotificationTone;
+  readonly icon: 'clock' | 'alert' | 'box' | 'sparkle';
+  readonly timestamp: number;
+}
 
 interface NavItem {
   readonly path: string;
@@ -77,6 +90,11 @@ export class DashboardComponent implements OnInit {
   readonly sidebarOpen = signal(true);
   readonly mobileMenuOpen = signal(false);
   readonly currentUrl = signal<string>(this.router.url);
+
+  readonly products = signal<Product[]>([]);
+  readonly ordersRaw = signal<Order[]>([]);
+  readonly notificationsOpen = signal(false);
+  readonly readNotificationIds = signal<ReadonlySet<string>>(new Set());
 
   readonly navItems: readonly NavItem[] = [
     { path: '/admin/dashboard', label: 'Overview', icon: 'grid', exact: true },
@@ -140,6 +158,82 @@ export class DashboardComponent implements OnInit {
   readonly currencyPreview = computed(() => this.formatCompactInr(this.todayRevenue()));
   readonly revenueCompact = computed(() => this.formatCompactInr(this.totalRevenue()));
 
+  readonly notifications = computed<readonly AdminNotification[]>(() => {
+    const items: AdminNotification[] = [];
+    const orders = this.ordersRaw();
+    const products = this.products();
+
+    const pending = orders.filter((o) => o.status === 'pending');
+    for (const order of pending.slice(0, 6)) {
+      items.push({
+        id: `pending-${order.id}`,
+        title: `New order from ${order.customerName}`,
+        body: `${order.items.length} item${order.items.length > 1 ? 's' : ''} · ${this.formatCompactInr(order.totalAmount)} — awaiting review`,
+        routerLink: ['/admin/dashboard/orders'],
+        tone: 'warn',
+        icon: 'clock',
+        timestamp: new Date(order.createdAt).getTime(),
+      });
+    }
+
+    const failed = orders.filter((o) => o.paymentStatus === 'failed');
+    for (const order of failed.slice(0, 4)) {
+      items.push({
+        id: `failed-${order.id}`,
+        title: `Payment failed · ${order.customerName}`,
+        body: order.paymentError ?? 'Customer payment did not complete — may need a manual follow-up.',
+        routerLink: ['/admin/dashboard/orders'],
+        tone: 'danger',
+        icon: 'alert',
+        timestamp: new Date(order.createdAt).getTime(),
+      });
+    }
+
+    const outOfStock = products.filter((p) => !p.inStock);
+    if (outOfStock.length > 0) {
+      items.push({
+        id: `stock-${outOfStock.length}`,
+        title: `${outOfStock.length} product${outOfStock.length > 1 ? 's' : ''} out of stock`,
+        body: outOfStock
+          .slice(0, 3)
+          .map((p) => p.name)
+          .join(', ') + (outOfStock.length > 3 ? `, +${outOfStock.length - 3} more` : ''),
+        routerLink: ['/admin/dashboard/products'],
+        tone: 'info',
+        icon: 'box',
+        timestamp: Date.now(),
+      });
+    }
+
+    const paidToday = orders.filter((o) => {
+      if (o.paymentStatus !== 'paid' || !o.paidAt) return false;
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      return new Date(o.paidAt).getTime() >= startOfDay.getTime();
+    });
+    if (paidToday.length > 0) {
+      const totalToday = paidToday.reduce((s, o) => s + o.totalAmount, 0);
+      items.push({
+        id: `paid-today-${paidToday.length}`,
+        title: `${paidToday.length} payment${paidToday.length > 1 ? 's' : ''} received today`,
+        body: `${this.formatCompactInr(totalToday)} collected · great momentum!`,
+        routerLink: ['/admin/dashboard/orders'],
+        tone: 'success',
+        icon: 'sparkle',
+        timestamp: Date.now(),
+      });
+    }
+
+    return items.sort((a, b) => b.timestamp - a.timestamp);
+  });
+
+  readonly unreadCount = computed(() => {
+    const read = this.readNotificationIds();
+    return this.notifications().filter((n) => !read.has(n.id)).length;
+  });
+
+  readonly hasNotifications = computed(() => this.notifications().length > 0);
+
   ngOnInit(): void {
     this.router.events
       .pipe(
@@ -158,6 +252,7 @@ export class DashboardComponent implements OnInit {
         const now = new Date();
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
+        this.ordersRaw.set(orders);
         this.totalOrders.set(orders.length);
         this.totalRevenue.set(orders.reduce((s, o) => s + o.totalAmount, 0));
         this.pendingOrders.set(orders.filter((o) => o.status === 'pending').length);
@@ -176,9 +271,57 @@ export class DashboardComponent implements OnInit {
       .getProducts()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((products) => {
+        this.products.set(products);
         this.totalProducts.set(products.length);
         this.lowStock.set(products.filter((p) => !p.inStock).length);
       });
+
+    this.loadReadNotifications();
+  }
+
+  toggleNotifications(): void {
+    this.notificationsOpen.update((v) => !v);
+  }
+
+  closeNotifications(): void {
+    this.notificationsOpen.set(false);
+  }
+
+  markAllAsRead(): void {
+    const ids = new Set(this.notifications().map((n) => n.id));
+    this.readNotificationIds.set(ids);
+    this.persistReadNotifications();
+  }
+
+  onNotificationClick(notification: AdminNotification): void {
+    const next = new Set(this.readNotificationIds());
+    next.add(notification.id);
+    this.readNotificationIds.set(next);
+    this.persistReadNotifications();
+    this.router.navigate(notification.routerLink);
+    this.closeNotifications();
+  }
+
+  private persistReadNotifications(): void {
+    try {
+      const ids = Array.from(this.readNotificationIds());
+      localStorage.setItem('striratna_admin_read_notifications', JSON.stringify(ids));
+    } catch {
+      // localStorage might be disabled (private mode) — ignore
+    }
+  }
+
+  private loadReadNotifications(): void {
+    try {
+      const raw = localStorage.getItem('striratna_admin_read_notifications');
+      if (!raw) return;
+      const ids: string[] = JSON.parse(raw);
+      if (Array.isArray(ids)) {
+        this.readNotificationIds.set(new Set(ids));
+      }
+    } catch {
+      // ignore
+    }
   }
 
   toggleSidebar(): void {

@@ -19,6 +19,11 @@ export class LoginComponent {
   password = '';
   readonly loading = signal(false);
   readonly error = signal('');
+  readonly showPassword = signal(false);
+
+  toggleShowPassword(): void {
+    this.showPassword.update((v) => !v);
+  }
 
   async login(): Promise<void> {
     if (!this.email || !this.password) return;

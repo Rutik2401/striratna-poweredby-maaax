@@ -422,19 +422,41 @@
 }
 
 .ord-status-select {
-  padding: 0.375rem 0.625rem;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 0.5rem;
-  font-size: 0.75rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  min-width: 140px;
+  padding: 0.5rem 2rem 0.5rem 0.875rem;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23800020' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.75rem;
+  border: 1.5px solid rgba(128, 0, 32, 0.18);
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #111827;
   cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  box-shadow: 0 1px 2px rgba(128, 0, 32, 0.04);
+
+  &:hover {
+    border-color: rgba(128, 0, 32, 0.4);
+    background-color: #fffaf7;
+  }
 
   &:focus {
     outline: none;
     border-color: #D4AF37;
-    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+  }
+
+  option {
+    padding: 0.5rem;
+    background: #ffffff;
+    color: #111827;
+    font-weight: 500;
   }
 }
 
