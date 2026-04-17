@@ -1,112 +1,357 @@
-<div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <h2 class="font-heading text-xl font-bold text-gray-900">Categories</h2>
-    <button (click)="toggleForm()"
-      class="px-5 py-2.5 bg-maroon text-white text-sm font-semibold rounded-full
-             hover:bg-maroon-dark transition-colors">
-      {{ showForm() ? 'Cancel' : '+ Add Category' }}
+<!-- ==================== TOOLBAR ==================== -->
+<section class="cat-toolbar">
+  <div class="cat-toolbar__stats">
+    <button type="button"
+            class="cat-stat"
+            [class.cat-stat--active]="statusFilter() === 'all'"
+            (click)="setStatus('all')">
+      <span class="cat-stat__value">{{ totalCount() }}</span>
+      <span class="cat-stat__label">Total</span>
+    </button>
+    <button type="button"
+            class="cat-stat cat-stat--success"
+            [class.cat-stat--active]="statusFilter() === 'active'"
+            (click)="setStatus('active')">
+      <span class="cat-stat__value">{{ activeCount() }}</span>
+      <span class="cat-stat__label">Active</span>
+    </button>
+    <button type="button"
+            class="cat-stat cat-stat--muted"
+            [class.cat-stat--active]="statusFilter() === 'hidden'"
+            (click)="setStatus('hidden')">
+      <span class="cat-stat__value">{{ hiddenCount() }}</span>
+      <span class="cat-stat__label">Hidden</span>
     </button>
   </div>
 
-  <!-- Form -->
-  @if (showForm()) {
-    <div class="bg-white rounded-2xl p-6 shadow-sm space-y-4">
-      <h3 class="font-heading text-lg font-semibold">
-        {{ editingId() ? 'Edit Category' : 'Add New Category' }}
-      </h3>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-          <input type="text" [(ngModel)]="form.name"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                   focus:outline-none focus:ring-2 focus:ring-gold/50" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Name (Marathi)</label>
-          <input type="text" [(ngModel)]="form.nameMarathi"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                   focus:outline-none focus:ring-2 focus:ring-gold/50" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-          <input type="text" [(ngModel)]="form.image"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                   focus:outline-none focus:ring-2 focus:ring-gold/50" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
-          <input type="number" [(ngModel)]="form.order"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                   focus:outline-none focus:ring-2 focus:ring-gold/50" />
-        </div>
-        <div class="sm:col-span-2">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <textarea [(ngModel)]="form.description" rows="2"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm resize-none
-                   focus:outline-none focus:ring-2 focus:ring-gold/50"></textarea>
-        </div>
-      </div>
-      <label class="flex items-center gap-2 text-sm">
-        <input type="checkbox" [(ngModel)]="form.active" class="rounded" />
-        Active
-      </label>
-      <div class="flex gap-3">
-        <button (click)="saveCategory()"
-          class="px-6 py-2.5 bg-maroon text-white text-sm font-semibold rounded-full
-                 hover:bg-maroon-dark transition-colors">
-          {{ editingId() ? 'Update' : 'Save' }}
+  <div class="cat-toolbar__actions">
+    <div class="cat-search">
+      <svg class="cat-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="7"/>
+        <path d="M21 21l-4.35-4.35"/>
+      </svg>
+      <input type="text"
+             placeholder="Search by name, Marathi, description…"
+             [ngModel]="searchQuery()"
+             (ngModelChange)="onSearchInput($event)"
+             class="cat-search__input" />
+      @if (searchQuery()) {
+        <button type="button" class="cat-search__clear" (click)="onSearchInput('')" aria-label="Clear search">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 6l12 12M18 6l-12 12"/>
+          </svg>
         </button>
-        <button (click)="resetForm()"
-          class="px-6 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-full
-                 hover:bg-gray-200 transition-colors">
-          Reset
-        </button>
-      </div>
+      }
     </div>
-  }
 
-  <!-- Categories Grid -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    @for (category of categories(); track category.id) {
-      <div class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
-        <div class="flex items-start justify-between">
-          <div class="flex items-center gap-3">
-            @if (category.image) {
-              <img [src]="category.image" class="w-12 h-12 rounded-xl object-cover" />
-            } @else {
-              <div class="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center">
-                <span class="font-heading text-lg text-gold">{{ category.name.charAt(0) }}</span>
-              </div>
-            }
-            <div>
-              <h3 class="text-sm font-semibold text-gray-900">{{ category.name }}</h3>
-              @if (category.nameMarathi) {
-                <p class="text-xs text-gray-500">{{ category.nameMarathi }}</p>
-              }
-            </div>
-          </div>
-          <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full"
-                [class]="category.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'">
-            {{ category.active ? 'Active' : 'Hidden' }}
-          </span>
-        </div>
-        @if (category.description) {
-          <p class="text-xs text-gray-500 mt-3">{{ category.description }}</p>
+    <div class="cat-sort">
+      <label class="cat-sort__label">Sort</label>
+      <select [ngModel]="sortKey()" (ngModelChange)="setSort($event)" class="cat-sort__select">
+        @for (opt of sortOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
         }
-        <div class="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100">
-          <button (click)="editCategory(category)"
-            class="text-xs text-maroon hover:underline">Edit</button>
-          <span class="text-gray-300">|</span>
-          <button (click)="deleteCategory(category.id)"
-            class="text-xs text-red-500 hover:underline">Delete</button>
-        </div>
-      </div>
+      </select>
+    </div>
+
+    <div class="cat-view">
+      <button type="button"
+              class="cat-view__btn"
+              [class.cat-view__btn--active]="viewMode() === 'grid'"
+              (click)="setView('grid')"
+              aria-label="Grid view">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+      </button>
+      <button type="button"
+              class="cat-view__btn"
+              [class.cat-view__btn--active]="viewMode() === 'list'"
+              (click)="setView('list')"
+              aria-label="List view">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+
+    <button type="button" (click)="openCreate()" class="cat-btn cat-btn--primary">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M12 5v14m-7-7h14"/>
+      </svg>
+      <span>Add Category</span>
+    </button>
+  </div>
+</section>
+
+<!-- ==================== FILTER SUMMARY ==================== -->
+@if (hasActiveFilters()) {
+  <div class="cat-filter-summary">
+    <span class="text-xs text-gray-500">
+      Showing <span class="font-bold text-gray-900">{{ filteredCount() }}</span>
+      of {{ totalCount() }}
+    </span>
+    <button type="button" (click)="clearFilters()" class="cat-filter-summary__clear">
+      Clear filters
+    </button>
+  </div>
+}
+
+<!-- ==================== CONTENT ==================== -->
+@if (loading()) {
+  <div class="cat-empty">
+    <div class="cat-empty__spinner"></div>
+    <p class="text-sm text-gray-500 mt-3">Loading categories…</p>
+  </div>
+} @else if (filteredCategories().length === 0) {
+  <div class="cat-empty">
+    <div class="cat-empty__icon">
+      @if (totalCount() === 0) {
+        <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M20 12l-8 8-10-10V2h8z"/>
+          <circle cx="7" cy="7" r="1.5" fill="currentColor"/>
+        </svg>
+      } @else {
+        <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="11" cy="11" r="7"/>
+          <path d="M21 21l-4.35-4.35"/>
+        </svg>
+      }
+    </div>
+    @if (totalCount() === 0) {
+      <h3 class="font-heading text-lg font-bold text-gray-900 mt-4">No categories yet</h3>
+      <p class="text-sm text-gray-500 mt-1">Organise your jewellery by creating your first category.</p>
+      <button type="button" (click)="openCreate()" class="cat-btn cat-btn--primary mt-6">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 5v14m-7-7h14"/>
+        </svg>
+        Create First Category
+      </button>
+    } @else {
+      <h3 class="font-heading text-lg font-bold text-gray-900 mt-4">No matches</h3>
+      <p class="text-sm text-gray-500 mt-1">Try a different search or clear your filters.</p>
+      <button type="button" (click)="clearFilters()" class="cat-btn cat-btn--ghost mt-6">
+        Clear Filters
+      </button>
     }
   </div>
+} @else if (viewMode() === 'grid') {
+  <!-- ============ GRID VIEW ============ -->
+  <div class="cat-grid">
+    @for (category of filteredCategories(); track category.id) {
+      <article class="cat-card" [class.cat-card--hidden]="!category.active">
+        <div class="cat-card__media">
+          @if (category.image) {
+            <img [src]="category.image" [alt]="category.name" loading="lazy" />
+          } @else {
+            <div class="cat-card__placeholder">
+              <span>{{ category.name.charAt(0).toUpperCase() }}</span>
+            </div>
+          }
+          <span class="cat-card__order">#{{ category.order }}</span>
+          @if (!category.active) {
+            <span class="cat-card__hidden-tag">Hidden</span>
+          }
+        </div>
 
-  @if (categories().length === 0) {
-    <div class="text-center py-12 text-gray-500 text-sm">
-      No categories yet. Add your first category!
+        <div class="cat-card__body">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <h3 class="cat-card__name">{{ category.name }}</h3>
+              @if (category.nameMarathi) {
+                <p class="cat-card__subname">{{ category.nameMarathi }}</p>
+              }
+            </div>
+            <label class="cat-switch">
+              <input type="checkbox"
+                     [checked]="category.active"
+                     (change)="toggleActive(category)" />
+              <span class="cat-switch__slider"></span>
+            </label>
+          </div>
+
+          @if (category.description) {
+            <p class="cat-card__desc">{{ category.description }}</p>
+          }
+
+          <div class="cat-card__actions">
+            <button type="button" (click)="editCategory(category)" class="cat-action">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.4-9.4a2 2 0 112.8 2.8L11.8 15H9v-2.8l8.6-8.6z"/>
+              </svg>
+              Edit
+            </button>
+            <button type="button" (click)="deleteCategory(category.id)" class="cat-action cat-action--danger">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 7l-.9 12.1A2 2 0 0116.1 21H7.9a2 2 0 01-2-1.9L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+              Delete
+            </button>
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+} @else {
+  <!-- ============ LIST VIEW ============ -->
+  <div class="cat-listcard">
+    <div class="overflow-x-auto">
+      <table class="cat-list">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Marathi</th>
+            <th>Order</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (category of filteredCategories(); track category.id) {
+            <tr>
+              <td>
+                <div class="flex items-center gap-3">
+                  @if (category.image) {
+                    <img [src]="category.image" [alt]="category.name" class="cat-list__thumb" loading="lazy" />
+                  } @else {
+                    <div class="cat-list__thumb cat-list__thumb--placeholder">
+                      {{ category.name.charAt(0).toUpperCase() }}
+                    </div>
+                  }
+                  <div class="min-w-0">
+                    <p class="text-sm font-semibold text-gray-900 truncate">{{ category.name }}</p>
+                    @if (category.description) {
+                      <p class="text-xs text-gray-400 truncate max-w-[260px]">{{ category.description }}</p>
+                    }
+                  </div>
+                </div>
+              </td>
+              <td class="text-sm text-gray-600">{{ category.nameMarathi || '—' }}</td>
+              <td>
+                <span class="cat-chip">#{{ category.order }}</span>
+              </td>
+              <td>
+                <label class="cat-switch">
+                  <input type="checkbox"
+                         [checked]="category.active"
+                         (change)="toggleActive(category)" />
+                  <span class="cat-switch__slider"></span>
+                </label>
+              </td>
+              <td class="text-right">
+                <div class="inline-flex items-center gap-1">
+                  <button type="button" (click)="editCategory(category)" class="cat-icon-btn" aria-label="Edit">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.4-9.4a2 2 0 112.8 2.8L11.8 15H9v-2.8l8.6-8.6z"/>
+                    </svg>
+                  </button>
+                  <button type="button" (click)="deleteCategory(category.id)" class="cat-icon-btn cat-icon-btn--danger" aria-label="Delete">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M19 7l-.9 12.1A2 2 0 0116.1 21H7.9a2 2 0 01-2-1.9L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
-  }
-</div>
+  </div>
+}
+
+<!-- ==================== MODAL FORM ==================== -->
+@if (showForm()) {
+  <div class="cat-modal" (click)="closeForm()">
+    <div class="cat-modal__card" (click)="$event.stopPropagation()">
+      <header class="cat-modal__header">
+        <div>
+          <h3 class="font-heading text-lg font-bold text-gray-900">
+            {{ editingId() ? 'Edit Category' : 'New Category' }}
+          </h3>
+          <p class="text-xs text-gray-500 mt-0.5">
+            {{ editingId() ? 'Update the details below.' : 'Add a new category to organise your catalogue.' }}
+          </p>
+        </div>
+        <button type="button" class="cat-icon-btn" (click)="closeForm()" aria-label="Close">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 6l12 12M18 6l-12 12"/>
+          </svg>
+        </button>
+      </header>
+
+      <form (ngSubmit)="saveCategory()" class="cat-modal__body">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="cat-label">Name <span class="text-red-500">*</span></label>
+            <input type="text" [(ngModel)]="form.name" name="name" required class="cat-input" placeholder="e.g. Mangalsutra" />
+          </div>
+          <div>
+            <label class="cat-label">Name (Marathi)</label>
+            <input type="text" [(ngModel)]="form.nameMarathi" name="nameMarathi" class="cat-input" placeholder="मंगळसूत्र" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="cat-label">Image URL</label>
+            <input type="url" [(ngModel)]="form.image" name="image" class="cat-input" placeholder="https://…" />
+            @if (form.image) {
+              <div class="mt-2">
+                <img [src]="form.image" alt="preview" class="h-20 w-20 rounded-xl object-cover border border-gray-100" />
+              </div>
+            }
+          </div>
+          <div>
+            <label class="cat-label">Display Order</label>
+            <input type="number" [(ngModel)]="form.order" name="order" class="cat-input" min="0" />
+          </div>
+          <div class="flex items-end">
+            <label class="cat-switch cat-switch--inline">
+              <input type="checkbox" [(ngModel)]="form.active" name="active" />
+              <span class="cat-switch__slider"></span>
+              <span class="text-sm font-medium text-gray-700 ml-2">Active (visible on store)</span>
+            </label>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="cat-label">Description</label>
+            <textarea [(ngModel)]="form.description" name="description" rows="3" class="cat-input cat-input--textarea"
+                      placeholder="What does this category showcase?"></textarea>
+          </div>
+        </div>
+      </form>
+
+      <footer class="cat-modal__footer">
+        <button type="button" (click)="closeForm()" class="cat-btn cat-btn--ghost">Cancel</button>
+        <button type="button" (click)="saveCategory()" [disabled]="saving()" class="cat-btn cat-btn--primary">
+          @if (saving()) {
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            Saving…
+          } @else {
+            {{ editingId() ? 'Update Category' : 'Create Category' }}
+          }
+        </button>
+      </footer>
+    </div>
+  </div>
+}
+
+<!-- ==================== TOAST ==================== -->
+@if (toast(); as t) {
+  <div class="cat-toast"
+       [class.cat-toast--error]="t.tone === 'error'"
+       [class.cat-toast--success]="t.tone === 'success'">
+    @if (t.tone === 'success') {
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M5 13l4 4L19 7"/>
+      </svg>
+    } @else {
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M12 9v2m0 4h.01M4.9 19h14.2a2 2 0 001.7-3L12.9 4a2 2 0 00-3.5 0L3.2 16a2 2 0 001.7 3z"/>
+      </svg>
+    }
+    <span>{{ t.message }}</span>
+  </div>
+}

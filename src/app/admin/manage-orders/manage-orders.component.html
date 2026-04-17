@@ -1,73 +1,292 @@
-<div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <h2 class="font-heading text-xl font-bold text-gray-900">Orders</h2>
-    <select [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange($event)"
-      class="px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold/50">
-      <option value="">All Status</option>
-      @for (option of statusOptions; track option.value) {
-        <option [value]="option.value">{{ option.label }}</option>
+<!-- ==================== STATS ==================== -->
+<section class="ord-stats">
+  <div class="ord-stat ord-stat--primary">
+    <div class="ord-stat__icon">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 5h6M9 9h6M9 13h6M5 19V5a2 2 0 012-2h10a2 2 0 012 2v14l-3-2-2 2-2-2-2 2-2-2-3 2z"/>
+      </svg>
+    </div>
+    <div>
+      <p class="ord-stat__value">{{ totalCount() }}</p>
+      <p class="ord-stat__label">Total Orders</p>
+    </div>
+  </div>
+  <div class="ord-stat ord-stat--orange">
+    <div class="ord-stat__icon">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+    </div>
+    <div>
+      <p class="ord-stat__value">{{ pendingCount() }}</p>
+      <p class="ord-stat__label">Pending</p>
+    </div>
+  </div>
+  <div class="ord-stat ord-stat--green">
+    <div class="ord-stat__icon">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 13l4 4L19 7"/>
+      </svg>
+    </div>
+    <div>
+      <p class="ord-stat__value">{{ paidCount() }}</p>
+      <p class="ord-stat__label">Paid</p>
+    </div>
+  </div>
+  <div class="ord-stat ord-stat--gold">
+    <div class="ord-stat__icon">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 8c-1.66 0-3 .9-3 2s1.34 2 3 2 3 .9 3 2-1.34 2-3 2m0-8v1m0 7v1m9-4a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+    </div>
+    <div>
+      <p class="ord-stat__value">{{ revenueTotal() | inr }}</p>
+      <p class="ord-stat__label">Paid Revenue</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FILTERS ==================== -->
+<section class="ord-filters">
+  <div class="ord-search">
+    <svg class="ord-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="7"/>
+      <path d="M21 21l-4.35-4.35"/>
+    </svg>
+    <input type="text"
+           placeholder="Search by name, phone, email, city, pincode, or order id…"
+           [ngModel]="searchQuery()"
+           (ngModelChange)="onSearchInput($event)"
+           class="ord-search__input" />
+    @if (searchQuery()) {
+      <button type="button" class="ord-search__clear" (click)="onSearchInput('')" aria-label="Clear">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 6l12 12M18 6l-12 12"/>
+        </svg>
+      </button>
+    }
+  </div>
+
+  <div class="ord-filters__selects">
+    <select [ngModel]="statusFilter()" (ngModelChange)="setStatus($event)" class="ord-select">
+      @for (opt of statusOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+
+    <select [ngModel]="paymentStatusFilter()" (ngModelChange)="setPaymentStatus($event)" class="ord-select">
+      @for (opt of paymentStatusOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+
+    <select [ngModel]="sortKey()" (ngModelChange)="setSort($event)" class="ord-select">
+      @for (opt of sortOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
       }
     </select>
   </div>
+</section>
 
-  <!-- Orders Table -->
-  <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
-    @if (filteredOrders().length === 0) {
-      <div class="p-8 text-center text-gray-500 text-sm">No orders found</div>
+<!-- Quick status chips -->
+<div class="ord-chips">
+  @for (opt of statusOptions; track opt.value) {
+    <button type="button"
+            class="ord-chip"
+            [class.ord-chip--active]="statusFilter() === opt.value"
+            (click)="setStatus(opt.value)">
+      <span>{{ opt.label }}</span>
+      <span class="ord-chip__count">{{ statusCounts()[opt.value] }}</span>
+    </button>
+  }
+</div>
+
+<!-- Summary -->
+@if (hasActiveFilters()) {
+  <div class="ord-summary">
+    <span class="text-xs text-gray-500">
+      Showing <span class="font-bold text-gray-900">{{ filteredCount() }}</span>
+      of {{ totalCount() }}
+    </span>
+    <button type="button" (click)="clearFilters()" class="ord-summary__clear">
+      Clear filters
+    </button>
+  </div>
+}
+
+<!-- ==================== CONTENT ==================== -->
+@if (loading()) {
+  <div class="ord-empty">
+    <div class="ord-empty__spinner"></div>
+    <p class="text-sm text-gray-500 mt-3">Loading orders…</p>
+  </div>
+} @else if (filteredOrders().length === 0) {
+  <div class="ord-empty">
+    <div class="ord-empty__icon">
+      <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        @if (totalCount() === 0) {
+          <path d="M9 5h6M9 9h6M9 13h6M5 19V5a2 2 0 012-2h10a2 2 0 012 2v14l-3-2-2 2-2-2-2 2-2-2-3 2z"/>
+        } @else {
+          <circle cx="11" cy="11" r="7"/>
+          <path d="M21 21l-4.35-4.35"/>
+        }
+      </svg>
+    </div>
+    @if (totalCount() === 0) {
+      <h3 class="font-heading text-lg font-bold text-gray-900 mt-4">No orders yet</h3>
+      <p class="text-sm text-gray-500 mt-1">Orders will appear here as customers place them.</p>
     } @else {
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Customer</th>
-              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Items</th>
-              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Total</th>
-              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Payment</th>
-              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            @for (order of filteredOrders(); track order.id) {
-              <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-6 py-4">
-                  <p class="text-sm font-medium text-gray-900">{{ order.customerName }}</p>
-                  <p class="text-xs text-gray-500">{{ order.customerPhone }}</p>
-                  <p class="text-xs text-gray-400">{{ order.city }}</p>
-                </td>
-                <td class="px-6 py-4">
-                  <div class="space-y-1">
-                    @for (item of order.items; track item.productId) {
-                      <p class="text-xs text-gray-600">{{ item.productName }} x{{ item.quantity }}</p>
-                    }
+      <h3 class="font-heading text-lg font-bold text-gray-900 mt-4">No matches</h3>
+      <p class="text-sm text-gray-500 mt-1">Try a different search or clear your filters.</p>
+      <button type="button" (click)="clearFilters()" class="ord-btn ord-btn--ghost mt-6">
+        Clear Filters
+      </button>
+    }
+  </div>
+} @else {
+  <div class="ord-tablecard">
+    <div class="overflow-x-auto">
+      <table class="ord-table">
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (order of filteredOrders(); track order.id) {
+            <ng-container>
+              <tr [class.ord-row--expanded]="expandedOrderId() === order.id">
+                <td>
+                  <div class="flex items-center gap-3">
+                    <div class="ord-avatar">
+                      {{ order.customerName.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-sm font-semibold text-gray-900 truncate">{{ order.customerName }}</p>
+                      <p class="text-xs text-gray-400 truncate">{{ order.customerPhone }} · {{ order.city }}</p>
+                    </div>
                   </div>
                 </td>
-                <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ order.totalAmount | inr }}</td>
-                <td class="px-6 py-4">
-                  <span class="text-xs font-medium capitalize text-gray-600">{{ order.paymentMethod }}</span>
+                <td>
+                  <button type="button" (click)="toggleExpand(order.id)" class="ord-items-btn">
+                    <span>{{ order.items.length }} items</span>
+                    <svg class="w-3 h-3 transition-transform"
+                         [class.rotate-90]="expandedOrderId() === order.id"
+                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </button>
                 </td>
-                <td class="px-6 py-4">
-                  <span class="px-2.5 py-1 text-xs font-semibold rounded-full"
-                        [class]="statusColors[order.status]">
+                <td>
+                  <span class="text-sm font-bold text-gray-900">{{ order.totalAmount | inr }}</span>
+                </td>
+                <td>
+                  <div class="flex flex-col gap-1 items-start">
+                    <span class="ord-tag ord-tag--provider capitalize">{{ order.paymentProvider }}</span>
+                    <span class="ord-paystatus" [class]="paymentStatusColors[order.paymentStatus]">
+                      {{ paymentStatusLabels[order.paymentStatus] }}
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <span class="ord-status ord-status--{{ order.status }}">
                     {{ statusLabels[order.status] }}
                   </span>
                 </td>
-                <td class="px-6 py-4">
+                <td class="text-right">
                   <select
                     [ngModel]="order.status"
                     (ngModelChange)="updateStatus(order.id, $event)"
-                    class="px-3 py-1.5 border border-gray-200 rounded-lg text-xs
-                           focus:outline-none focus:ring-2 focus:ring-gold/50">
-                    @for (option of statusOptions; track option.value) {
-                      <option [value]="option.value">{{ option.label }}</option>
+                    class="ord-status-select">
+                    @for (opt of statusOptions; track opt.value) {
+                      @if (opt.value !== 'all') {
+                        <option [value]="opt.value">{{ opt.label }}</option>
+                      }
                     }
                   </select>
                 </td>
               </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    }
+
+              @if (expandedOrderId() === order.id) {
+                <tr class="ord-details-row">
+                  <td colspan="6">
+                    <div class="ord-details">
+                      <div class="ord-details__grid">
+                        <div>
+                          <p class="ord-details__label">Items</p>
+                          <div class="space-y-2 mt-1">
+                            @for (item of order.items; track item.productId) {
+                              <div class="flex items-center gap-2">
+                                <img [src]="item.productImage" alt="" class="w-9 h-9 rounded-lg object-cover" />
+                                <div class="flex-1 min-w-0">
+                                  <p class="text-xs font-semibold text-gray-800 truncate">{{ item.productName }}</p>
+                                  <p class="text-[11px] text-gray-400">{{ item.quantity }} × {{ item.price | inr }}</p>
+                                </div>
+                                <span class="text-xs font-bold text-gray-900">{{ item.price * item.quantity | inr }}</span>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                        <div>
+                          <p class="ord-details__label">Shipping</p>
+                          <p class="text-sm text-gray-700 mt-1">{{ order.shippingAddress }}</p>
+                          <p class="text-xs text-gray-500 mt-0.5">{{ order.city }} · {{ order.pincode }}</p>
+                          @if (order.customerEmail) {
+                            <p class="text-xs text-gray-500 mt-2">✉ {{ order.customerEmail }}</p>
+                          }
+                          @if (order.notes) {
+                            <p class="text-xs text-gray-500 mt-2 italic">Note: {{ order.notes }}</p>
+                          }
+                        </div>
+                        <div>
+                          <p class="ord-details__label">Payment Detail</p>
+                          <p class="text-xs text-gray-700 mt-1">
+                            <span class="font-semibold capitalize">{{ order.paymentProvider }}</span>
+                            ·
+                            <span [class]="paymentStatusColors[order.paymentStatus]">{{ paymentStatusLabels[order.paymentStatus] }}</span>
+                          </p>
+                          @if (order.cashfreePaymentId) {
+                            <p class="text-[11px] text-gray-400 mt-1">Tx: {{ order.cashfreePaymentId }}</p>
+                          }
+                          @if (order.paidAt) {
+                            <p class="text-[11px] text-gray-400 mt-0.5">Paid at: {{ order.paidAt | date:'MMM d, h:mm a' }}</p>
+                          }
+                          @if (order.paymentError) {
+                            <p class="text-[11px] text-red-500 mt-1">⚠ {{ order.paymentError }}</p>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </ng-container>
+          }
+        </tbody>
+      </table>
+    </div>
   </div>
-</div>
+}
+
+<!-- ==================== TOAST ==================== -->
+@if (toast(); as t) {
+  <div class="ord-toast"
+       [class.ord-toast--error]="t.tone === 'error'"
+       [class.ord-toast--success]="t.tone === 'success'">
+    @if (t.tone === 'success') {
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M5 13l4 4L19 7"/>
+      </svg>
+    } @else {
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M12 9v2m0 4h.01M4.9 19h14.2a2 2 0 001.7-3L12.9 4a2 2 0 00-3.5 0L3.2 16a2 2 0 001.7 3z"/>
+      </svg>
+    }
+    <span>{{ t.message }}</span>
+  </div>
+}
