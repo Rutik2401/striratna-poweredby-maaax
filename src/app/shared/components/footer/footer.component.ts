@@ -37,7 +37,7 @@ export class FooterComponent {
 
   readonly quickLinks: readonly FooterLink[] = [
     { path: '/', label: 'Home' },
-    { path: '/shop', label: 'Shop All' },
+    { path: '/shop', label: 'Shop' },
     { path: '/about', label: 'About Us' },
     { path: '/contact', label: 'Contact' },
     { path: '/cart', label: 'Cart' },
