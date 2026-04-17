@@ -8,7 +8,7 @@ export const environment = {
     mode: 'production' as 'sandbox' | 'production',
     createOrderFunction: 'cashfree-create-order',
   },
-  whatsappNumber: '919579393985',
+  whatsappNumber: '918275469466',
   brandName: 'स्त्रीरत्न',
   tagline: 'साज महाराष्ट्राचा',
 };
