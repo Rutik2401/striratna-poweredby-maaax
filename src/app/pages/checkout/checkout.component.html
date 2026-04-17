@@ -51,51 +51,161 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Form -->
       <div class="lg:col-span-2">
-        <form (ngSubmit)="placeOrder()" class="space-y-6">
+        <form (ngSubmit)="placeOrder()" novalidate class="space-y-6">
           <!-- Contact Details -->
-          <div class="bg-white rounded-2xl p-6 shadow-sm space-y-4">
+          <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
             <h3 class="font-heading text-lg font-semibold text-gray-900">Contact Details</h3>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div class="floating-field">
-                <input type="text" id="co-name" [(ngModel)]="form.name" name="name" required placeholder=" " autocomplete="name" />
-                <label for="co-name">Full Name *</label>
+              <div>
+                <div class="floating-field"
+                     [class.floating-field--invalid]="!!displayedErrors().name">
+                  <input type="text"
+                         id="co-name"
+                         [(ngModel)]="form.name"
+                         (ngModelChange)="onFieldInput()"
+                         (blur)="onFieldBlur('name')"
+                         name="name"
+                         required
+                         maxlength="60"
+                         placeholder=" "
+                         autocomplete="name"
+                         [attr.aria-invalid]="!!displayedErrors().name"
+                         [attr.aria-describedby]="displayedErrors().name ? 'co-name-err' : null" />
+                  <label for="co-name">Full Name *</label>
+                </div>
+                @if (displayedErrors().name; as err) {
+                  <p id="co-name-err" class="field-error">{{ err }}</p>
+                }
               </div>
-              <div class="floating-field">
-                <input type="tel" id="co-phone" [(ngModel)]="form.phone" name="phone" required placeholder=" " autocomplete="tel" />
-                <label for="co-phone">Phone Number *</label>
+
+              <div>
+                <div class="floating-field"
+                     [class.floating-field--invalid]="!!displayedErrors().phone">
+                  <input type="tel"
+                         id="co-phone"
+                         [(ngModel)]="form.phone"
+                         (ngModelChange)="onFieldInput()"
+                         (blur)="onFieldBlur('phone')"
+                         name="phone"
+                         required
+                         inputmode="numeric"
+                         maxlength="10"
+                         pattern="[6-9][0-9]{9}"
+                         placeholder=" "
+                         autocomplete="tel"
+                         [attr.aria-invalid]="!!displayedErrors().phone"
+                         [attr.aria-describedby]="displayedErrors().phone ? 'co-phone-err' : null" />
+                  <label for="co-phone">Phone Number *</label>
+                </div>
+                @if (displayedErrors().phone; as err) {
+                  <p id="co-phone-err" class="field-error">{{ err }}</p>
+                } @else {
+                  <p class="field-hint">10-digit mobile starting with 6/7/8/9</p>
+                }
               </div>
             </div>
 
-            <div class="floating-field">
-              <input type="email" id="co-email" [(ngModel)]="form.email" name="email" placeholder=" " autocomplete="email" />
-              <label for="co-email">Email (Optional)</label>
+            <div>
+              <div class="floating-field"
+                   [class.floating-field--invalid]="!!displayedErrors().email">
+                <input type="email"
+                       id="co-email"
+                       [(ngModel)]="form.email"
+                       (ngModelChange)="onFieldInput()"
+                       (blur)="onFieldBlur('email')"
+                       name="email"
+                       placeholder=" "
+                       autocomplete="email"
+                       [attr.aria-invalid]="!!displayedErrors().email"
+                       [attr.aria-describedby]="displayedErrors().email ? 'co-email-err' : null" />
+                <label for="co-email">Email (Optional)</label>
+              </div>
+              @if (displayedErrors().email; as err) {
+                <p id="co-email-err" class="field-error">{{ err }}</p>
+              }
             </div>
           </div>
 
           <!-- Shipping Address -->
-          <div class="bg-white rounded-2xl p-6 shadow-sm space-y-4">
+          <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
             <h3 class="font-heading text-lg font-semibold text-gray-900">Shipping Address</h3>
 
-            <div class="floating-field">
-              <textarea id="co-address" [(ngModel)]="form.address" name="address" required rows="3" placeholder=" " autocomplete="street-address"></textarea>
-              <label for="co-address">House/Flat number, Building, Street *</label>
+            <div>
+              <div class="floating-field"
+                   [class.floating-field--invalid]="!!displayedErrors().address">
+                <textarea id="co-address"
+                          [(ngModel)]="form.address"
+                          (ngModelChange)="onFieldInput()"
+                          (blur)="onFieldBlur('address')"
+                          name="address"
+                          required
+                          rows="3"
+                          maxlength="250"
+                          placeholder=" "
+                          autocomplete="street-address"
+                          [attr.aria-invalid]="!!displayedErrors().address"
+                          [attr.aria-describedby]="displayedErrors().address ? 'co-address-err' : null"></textarea>
+                <label for="co-address">House/Flat number, Building, Street *</label>
+              </div>
+              @if (displayedErrors().address; as err) {
+                <p id="co-address-err" class="field-error">{{ err }}</p>
+              }
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div class="floating-field">
-                <input type="text" id="co-city" [(ngModel)]="form.city" name="city" required placeholder=" " autocomplete="address-level2" />
-                <label for="co-city">City *</label>
+              <div>
+                <div class="floating-field"
+                     [class.floating-field--invalid]="!!displayedErrors().city">
+                  <input type="text"
+                         id="co-city"
+                         [(ngModel)]="form.city"
+                         (ngModelChange)="onFieldInput()"
+                         (blur)="onFieldBlur('city')"
+                         name="city"
+                         required
+                         maxlength="40"
+                         placeholder=" "
+                         autocomplete="address-level2"
+                         [attr.aria-invalid]="!!displayedErrors().city"
+                         [attr.aria-describedby]="displayedErrors().city ? 'co-city-err' : null" />
+                  <label for="co-city">City *</label>
+                </div>
+                @if (displayedErrors().city; as err) {
+                  <p id="co-city-err" class="field-error">{{ err }}</p>
+                }
               </div>
-              <div class="floating-field">
-                <input type="text" id="co-pincode" [(ngModel)]="form.pincode" name="pincode" required placeholder=" " inputmode="numeric" autocomplete="postal-code" />
-                <label for="co-pincode">Pincode *</label>
+
+              <div>
+                <div class="floating-field"
+                     [class.floating-field--invalid]="!!displayedErrors().pincode">
+                  <input type="text"
+                         id="co-pincode"
+                         [(ngModel)]="form.pincode"
+                         (ngModelChange)="onFieldInput()"
+                         (blur)="onFieldBlur('pincode')"
+                         name="pincode"
+                         required
+                         inputmode="numeric"
+                         maxlength="6"
+                         pattern="[1-9][0-9]{5}"
+                         placeholder=" "
+                         autocomplete="postal-code"
+                         [attr.aria-invalid]="!!displayedErrors().pincode"
+                         [attr.aria-describedby]="displayedErrors().pincode ? 'co-pincode-err' : null" />
+                  <label for="co-pincode">Pincode *</label>
+                </div>
+                @if (displayedErrors().pincode; as err) {
+                  <p id="co-pincode-err" class="field-error">{{ err }}</p>
+                } @else {
+                  <p class="field-hint">6-digit Indian pincode</p>
+                }
               </div>
             </div>
           </div>
 
           <!-- Payment Method -->
-          <div class="bg-white rounded-2xl p-6 shadow-sm space-y-4">
+          <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
             <h3 class="font-heading text-lg font-semibold text-gray-900">Payment Method</h3>
 
             <div class="space-y-3">
@@ -161,30 +271,30 @@
           </div>
 
           <!-- Notes -->
-          <div class="bg-white rounded-2xl p-6 shadow-sm">
+          <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
             <div class="floating-field">
-              <textarea id="co-notes" [(ngModel)]="form.notes" name="notes" rows="2" placeholder=" "></textarea>
+              <textarea id="co-notes" [(ngModel)]="form.notes" name="notes" rows="2" maxlength="300" placeholder=" "></textarea>
               <label for="co-notes">Order Notes (Optional)</label>
             </div>
           </div>
 
-          <!-- Error -->
-          @if (errorMessage()) {
-            <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700 flex items-start gap-2">
-              <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M4.93 19h14.14a2 2 0 001.74-3L12.87 3.99a2 2 0 00-3.48 0L3.2 16a2 2 0 001.73 3z"/>
-              </svg>
-              <span>{{ errorMessage() }}</span>
-            </div>
-          }
-
           <!-- Submit (mobile) -->
-          <button type="submit" [disabled]="submitting() || paymentPending()"
-            class="lg:hidden w-full px-6 py-4 bg-gradient-to-r from-maroon to-maroon-dark text-white
-                   font-semibold rounded-full shadow-lg disabled:opacity-50 active:scale-95 transition-all">
+          <button type="submit"
+                  [disabled]="submitting() || paymentPending()"
+                  class="lg:hidden w-full px-6 py-4 bg-gradient-to-r from-maroon to-maroon-dark text-white
+                         font-semibold rounded-full shadow-lg disabled:opacity-50 active:scale-95 transition-all
+                         flex items-center justify-center gap-2">
             @if (paymentPending()) {
+              <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+              </svg>
               Completing Payment…
             } @else if (submitting()) {
+              <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+              </svg>
               Placing Order…
             } @else if (form.paymentMethod === 'cashfree') {
               Pay {{ total() | inr }} securely
@@ -237,9 +347,11 @@
           </div>
 
           <!-- Submit (desktop) -->
-          <button (click)="placeOrder()" [disabled]="submitting() || paymentPending()"
-            class="hidden lg:flex items-center justify-center gap-2 w-full px-6 py-4 bg-gradient-to-r from-maroon to-maroon-dark text-white
-                   font-semibold rounded-full shadow-lg disabled:opacity-50 active:scale-95 transition-all">
+          <button type="button"
+                  (click)="placeOrder()"
+                  [disabled]="submitting() || paymentPending()"
+                  class="hidden lg:flex items-center justify-center gap-2 w-full px-6 py-4 bg-gradient-to-r from-maroon to-maroon-dark text-white
+                         font-semibold rounded-full shadow-lg disabled:opacity-50 active:scale-95 transition-all">
             @if (paymentPending()) {
               <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>

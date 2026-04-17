@@ -4,12 +4,20 @@ import { CommonModule } from '@angular/common';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { WhatsappFabComponent } from './shared/components/whatsapp-fab/whatsapp-fab.component';
+import { ToastContainerComponent } from './shared/components/toast/toast-container.component';
 import { filter, map } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, NavbarComponent, FooterComponent, WhatsappFabComponent],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    NavbarComponent,
+    FooterComponent,
+    WhatsappFabComponent,
+    ToastContainerComponent,
+  ],
   templateUrl: './app.component.html',
 })
 export class AppComponent {
