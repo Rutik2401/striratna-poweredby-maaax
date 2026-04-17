@@ -1,0 +1,361 @@
+<!-- ==================== HEADER ==================== -->
+<section class="set-header">
+  <div class="set-header__main">
+    <p class="set-eyebrow">Brand Profile</p>
+    <h2 class="set-header__title">Site Settings</h2>
+    <p class="set-header__subtitle">
+      These values appear across the customer site — footer, WhatsApp buttons, cart and checkout.
+      Changes save instantly, no rebuild needed.
+    </p>
+
+    @if (lastSaved(); as ts) {
+      <p class="set-header__stamp">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Last saved <strong>{{ ts | date:'mediumDate' }}</strong> at
+        <strong>{{ ts | date:'shortTime' }}</strong>
+      </p>
+    }
+  </div>
+
+  <div class="set-header__actions">
+    @if (dirty()) {
+      <span class="set-dirty-chip" title="You have unsaved changes">
+        <span class="set-dirty-chip__dot"></span>
+        Unsaved changes
+      </span>
+    }
+    <button type="button"
+            (click)="refresh()"
+            [disabled]="saving() || loading()"
+            class="set-icon-btn"
+            title="Reload from database">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 4v6h6M20 20v-6h-6"/>
+        <path d="M20 10a8 8 0 00-14.93-3M4 14a8 8 0 0014.93 3"/>
+      </svg>
+    </button>
+  </div>
+</section>
+
+@if (loading() && !current()) {
+  <!-- Initial load -->
+  <div class="set-empty">
+    <div class="set-empty__spinner"></div>
+    <p class="text-sm text-gray-500 mt-3">Loading settings…</p>
+  </div>
+} @else if (!dbReady()) {
+  <!-- brand_settings row missing — help the admin set it up -->
+  <div class="set-setup">
+    <div class="set-setup__icon">
+      <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 8v4M12 16h.01"/>
+      </svg>
+    </div>
+    <h3 class="set-setup__title">One-time setup needed</h3>
+    <p class="set-setup__desc">
+      The <code>brand_settings</code> table is empty or missing in Supabase. Run this SQL once
+      in the Supabase SQL Editor to seed the row, then reload this page.
+    </p>
+    <pre class="set-setup__code">insert into brand_settings (id, whatsapp_number)
+values (1, '{{ whatsappDigits() || '918275469466' }}')
+on conflict (id) do nothing;</pre>
+    <button type="button" (click)="refresh()" class="set-btn set-btn--primary mt-4">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 4v6h6M20 20v-6h-6"/>
+        <path d="M20 10a8 8 0 00-14.93-3M4 14a8 8 0 0014.93 3"/>
+      </svg>
+      Retry
+    </button>
+  </div>
+} @else {
+
+  <form (ngSubmit)="save()" class="set-form" novalidate>
+
+    <!-- ============ CONTACT CHANNELS ============ -->
+    <div class="set-card">
+      <header class="set-card__header">
+        <div class="set-card__icon set-card__icon--green">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="set-card__title">Contact channels</h3>
+          <p class="set-card__desc">How customers reach you — WhatsApp, Instagram, and email.</p>
+        </div>
+      </header>
+
+      <div class="set-grid">
+        <!-- WhatsApp number -->
+        <div class="set-field set-field--span-2">
+          <label class="set-label" for="whatsappNumber">
+            WhatsApp Number
+            <span class="set-label__required">*</span>
+          </label>
+          <div class="set-input-group">
+            <span class="set-input-group__prefix">+</span>
+            <input type="tel"
+                   id="whatsappNumber"
+                   [(ngModel)]="form.whatsappNumber"
+                   (ngModelChange)="onInput()"
+                   name="whatsappNumber"
+                   inputmode="numeric"
+                   placeholder="918275469466"
+                   class="set-input set-input--prefixed"
+                   [class.set-input--invalid]="form.whatsappNumber && !whatsappValid()"
+                   required
+                   aria-describedby="whatsappNumber-hint" />
+          </div>
+          <div class="set-hint-row">
+            <p id="whatsappNumber-hint" class="set-hint">
+              Include country code (e.g. <code>91</code> for India), digits only.
+            </p>
+            @if (whatsappDigits()) {
+              <span class="set-format" [class.set-format--invalid]="!whatsappValid()">
+                @if (whatsappValid()) {
+                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 13l4 4L19 7"/>
+                  </svg>
+                }
+                {{ whatsappFormatted() }}
+              </span>
+            }
+          </div>
+          <a [href]="whatsappPreviewUrl()" target="_blank" rel="noopener"
+             class="set-preview-link"
+             [class.set-preview-link--disabled]="!whatsappValid()">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.5 17.3c-.2.7-1.1 1.2-1.7 1.3-.4.1-.9.1-1.5-.1-3-.9-5.1-4-5.3-4.3-.2-.3-1.3-1.7-1.3-3.3 0-1.6.8-2.3 1.1-2.7.3-.3.6-.4.9-.4h.6c.2 0 .4 0 .6.5.2.5.6 1.6.6 1.7 0 .1.1.3 0 .4-.1.2-.1.3-.3.4-.1.2-.3.4-.4.5-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.4.1.6-.1.1-.2.7-.8.8-1 .2-.3.3-.2.6-.1.3.1 1.6.8 1.9 1 .3.1.5.2.5.3.1 0 .1.4-.1 1z"/>
+            </svg>
+            Preview message in WhatsApp
+          </a>
+        </div>
+
+        <!-- Instagram -->
+        <div class="set-field set-field--span-2">
+          <label class="set-label" for="instagramUrl">Instagram URL</label>
+          <input type="url"
+                 id="instagramUrl"
+                 [(ngModel)]="form.instagramUrl"
+                 (ngModelChange)="onInput()"
+                 name="instagramUrl"
+                 placeholder="https://instagram.com/your-handle"
+                 class="set-input"
+                 [class.set-input--invalid]="form.instagramUrl && !instagramValid()" />
+          @if (form.instagramUrl && !instagramValid()) {
+            <p class="set-error-text">Must start with <code>https://instagram.com/</code></p>
+          }
+        </div>
+
+        <!-- Email -->
+        <div class="set-field">
+          <label class="set-label" for="contactEmail">Contact Email</label>
+          <input type="email"
+                 id="contactEmail"
+                 [(ngModel)]="form.contactEmail"
+                 (ngModelChange)="onInput()"
+                 name="contactEmail"
+                 placeholder="contact@striratna.in"
+                 class="set-input"
+                 [class.set-input--invalid]="form.contactEmail && !emailValid()" />
+          @if (form.contactEmail && !emailValid()) {
+            <p class="set-error-text">Enter a valid email address.</p>
+          }
+        </div>
+
+        <!-- Address -->
+        <div class="set-field">
+          <label class="set-label" for="address">Store Address</label>
+          <input type="text"
+                 id="address"
+                 [(ngModel)]="form.address"
+                 (ngModelChange)="onInput()"
+                 name="address"
+                 placeholder="Pune, Maharashtra"
+                 class="set-input" />
+        </div>
+
+        <!-- Default inquiry message -->
+        <div class="set-field set-field--span-2">
+          <label class="set-label" for="inquiryMessage">
+            Default WhatsApp inquiry message
+          </label>
+          <textarea id="inquiryMessage"
+                    [(ngModel)]="form.inquiryMessage"
+                    (ngModelChange)="onInput()"
+                    name="inquiryMessage"
+                    rows="2"
+                    placeholder="Hi! I'd like to know more about your jewellery."
+                    maxlength="240"
+                    class="set-input set-input--textarea"></textarea>
+          <p class="set-hint">Pre-filled in the chat when a customer taps a WhatsApp button. Max 240 characters.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DELIVERY ============ -->
+    <div class="set-card">
+      <header class="set-card__header">
+        <div class="set-card__icon set-card__icon--gold">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/>
+            <path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="set-card__title">Delivery</h3>
+          <p class="set-card__desc">Shown in cart, checkout, and product pages.</p>
+        </div>
+      </header>
+
+      <div class="set-grid">
+        <div class="set-field">
+          <label class="set-label" for="threshold">Free-delivery threshold</label>
+          <div class="set-input-group">
+            <span class="set-input-group__prefix">₹</span>
+            <input type="number"
+                   id="threshold"
+                   [(ngModel)]="form.freeDeliveryThreshold"
+                   (ngModelChange)="onInput()"
+                   name="freeDeliveryThreshold"
+                   min="0"
+                   step="1"
+                   class="set-input set-input--prefixed" />
+          </div>
+          <p class="set-hint">Orders above this qualify for FREE delivery.</p>
+        </div>
+
+        <div class="set-field">
+          <label class="set-label" for="deliveryCharge">Flat delivery charge</label>
+          <div class="set-input-group">
+            <span class="set-input-group__prefix">₹</span>
+            <input type="number"
+                   id="deliveryCharge"
+                   [(ngModel)]="form.deliveryCharge"
+                   (ngModelChange)="onInput()"
+                   name="deliveryCharge"
+                   min="0"
+                   step="1"
+                   class="set-input set-input--prefixed" />
+          </div>
+          <p class="set-hint">Applied when the order is below the threshold.</p>
+        </div>
+      </div>
+
+      <!-- Live delivery summary -->
+      <div class="set-summary">
+        <div class="set-summary__item">
+          <p class="set-summary__label">Below threshold</p>
+          <p class="set-summary__value">+ {{ form.deliveryCharge | inr }}</p>
+          <p class="set-summary__meta">Standard delivery charge</p>
+        </div>
+        <div class="set-summary__arrow">→</div>
+        <div class="set-summary__item set-summary__item--highlight">
+          <p class="set-summary__label">Above {{ form.freeDeliveryThreshold | inr }}</p>
+          <p class="set-summary__value">FREE</p>
+          <p class="set-summary__meta">No delivery fee</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ LIVE PREVIEW ============ -->
+    <div class="set-card set-card--preview">
+      <header class="set-card__header">
+        <div class="set-card__icon set-card__icon--maroon">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="set-card__title">Live preview</h3>
+          <p class="set-card__desc">Exactly how these values render to customers.</p>
+        </div>
+      </header>
+
+      <div class="set-preview">
+        <!-- WhatsApp CTA preview -->
+        <div class="set-preview__chip set-preview__chip--wa">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+          </svg>
+          <div>
+            <p class="set-preview__label">WhatsApp</p>
+            <p class="set-preview__value">{{ whatsappFormatted() }}</p>
+          </div>
+        </div>
+
+        @if (form.contactEmail && emailValid()) {
+          <div class="set-preview__chip">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+            <div>
+              <p class="set-preview__label">Email</p>
+              <p class="set-preview__value">{{ form.contactEmail }}</p>
+            </div>
+          </div>
+        }
+
+        @if (form.instagramUrl && instagramValid()) {
+          <div class="set-preview__chip">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2.2c3.2 0 3.6 0 4.9.1 3.2.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.9c-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.9.1s-3.6 0-4.9-.1c-3.3-.2-4.8-1.7-4.9-4.9-.1-1.3-.1-1.6-.1-4.9s0-3.6.1-4.8C2.3 4 3.8 2.4 7.1 2.3 8.4 2.2 8.8 2.2 12 2.2zm0-2.2C8.7 0 8.3 0 7 .1 2.6.3.3 2.6.1 7 0 8.3 0 8.7 0 12s0 3.7.1 4.9c.2 4.4 2.5 6.8 6.9 6.9 1.3.1 1.7.1 4.9.1s3.7 0 4.9-.1c4.4-.2 6.8-2.6 7-6.9.1-1.3.1-1.7.1-4.9s0-3.6-.1-4.9c-.2-4.4-2.6-6.8-7-6.9C15.7 0 15.3 0 12 0zm0 5.8A6.2 6.2 0 105.8 12 6.2 6.2 0 0012 5.8zm0 10.2A4 4 0 1116 12a4 4 0 01-4 4zm6.4-11.8a1.4 1.4 0 101.4 1.4 1.4 1.4 0 00-1.4-1.4z"/>
+            </svg>
+            <div>
+              <p class="set-preview__label">Instagram</p>
+              <p class="set-preview__value">&#64;{{ instagramHandle() }}</p>
+            </div>
+          </div>
+        }
+
+        @if (form.address) {
+          <div class="set-preview__chip">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            <div>
+              <p class="set-preview__label">Address</p>
+              <p class="set-preview__value">{{ form.address }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ============ ACTIONS BAR ============ -->
+    <footer class="set-actions">
+      <div class="set-actions__hint">
+        <kbd>Ctrl</kbd>+<kbd>S</kbd> to save · <kbd>Esc</kbd> to discard
+      </div>
+      <div class="set-actions__buttons">
+        <button type="button"
+                (click)="discard()"
+                [disabled]="!dirty() || saving()"
+                class="set-btn set-btn--ghost">
+          Discard
+        </button>
+        <button type="submit"
+                [disabled]="!dirty() || saving() || !formValid()"
+                class="set-btn set-btn--primary">
+          @if (saving()) {
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            Saving…
+          } @else {
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path d="M5 13l4 4L19 7"/>
+            </svg>
+            Save Changes
+          }
+        </button>
+      </div>
+    </footer>
+  </form>
+}
