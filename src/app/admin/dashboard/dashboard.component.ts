@@ -119,6 +119,12 @@ export class DashboardComponent implements OnInit {
       icon: 'tag',
       exact: false,
     },
+    {
+      path: '/admin/dashboard/settings',
+      label: 'Settings',
+      icon: 'settings',
+      exact: false,
+    },
   ];
 
   readonly pageMeta = computed<PageMeta>(() => {
@@ -139,6 +145,12 @@ export class DashboardComponent implements OnInit {
       return {
         title: 'Categories',
         subtitle: 'Organise how customers discover your collection.',
+      };
+    }
+    if (url.endsWith('/settings')) {
+      return {
+        title: 'Settings',
+        subtitle: 'Update brand profile — WhatsApp, email, delivery rates.',
       };
     }
     return {

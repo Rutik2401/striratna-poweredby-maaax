@@ -84,6 +84,13 @@ export const routes: Routes = [
             (m) => m.ManageCategoriesComponent
           ),
       },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./admin/manage-settings/manage-settings.component').then(
+            (m) => m.ManageSettingsComponent
+          ),
+      },
     ],
   },
   {

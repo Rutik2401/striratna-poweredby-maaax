@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { environment } from '../../../environments/environment';
+import { SettingsService } from '../../../core/services/settings.service';
 
 interface FooterLink {
   readonly path: string;
@@ -27,17 +27,23 @@ interface TrustBadge {
   templateUrl: './footer.component.html',
 })
 export class FooterComponent {
+  private readonly settings = inject(SettingsService);
+
   readonly year = new Date().getFullYear();
 
-  readonly whatsappUrl = `https://wa.me/${environment.whatsappNumber}?text=${encodeURIComponent(
-    `Hi! I'd like to know more about ${environment.brandName} jewellery.`
-  )}`;
+  readonly whatsappUrl = computed(() => {
+    const number = this.settings.whatsappNumber();
+    const message = encodeURIComponent(this.settings.inquiryMessage());
+    return `https://wa.me/${number}?text=${message}`;
+  });
 
-  readonly instagramUrl = 'https://instagram.com/';
+  readonly instagramUrl = computed(() => this.settings.instagramUrl());
+  readonly contactEmail = computed(() => this.settings.contactEmail());
+  readonly address = computed(() => this.settings.address());
 
   readonly quickLinks: readonly FooterLink[] = [
     { path: '/', label: 'Home' },
-    { path: '/shop', label: 'Shop' },
+    { path: '/shop', label: 'Shop All' },
     { path: '/about', label: 'About Us' },
     { path: '/contact', label: 'Contact' },
     { path: '/cart', label: 'Cart' },

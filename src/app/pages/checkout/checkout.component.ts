@@ -12,13 +12,11 @@ import { RouterLink } from '@angular/router';
 import { CartService } from '../../core/services/cart.service';
 import { OrderService } from '../../core/services/order.service';
 import { PaymentService } from '../../core/services/payment.service';
+import { SettingsService } from '../../core/services/settings.service';
 import { WhatsappService } from '../../core/services/whatsapp.service';
 import { CurrencyInrPipe } from '../../shared/pipes/currency-inr.pipe';
 import { ToastService } from '../../shared/services/toast.service';
 import { PaymentProvider } from '../../core/models/order.model';
-
-const FREE_DELIVERY_THRESHOLD = 999;
-const DELIVERY_CHARGE = 99;
 
 type PaymentMethod = PaymentProvider;
 type FieldName = 'name' | 'phone' | 'email' | 'address' | 'city' | 'pincode';
@@ -78,15 +76,23 @@ export class CheckoutComponent {
   private readonly orderService = inject(OrderService);
   private readonly paymentService = inject(PaymentService);
   private readonly whatsappService = inject(WhatsappService);
+  private readonly settings = inject(SettingsService);
   private readonly toast = inject(ToastService);
 
   readonly items = this.cartService.items;
   readonly isEmpty = this.cartService.isEmpty;
   readonly subtotal = this.cartService.totalAmount;
 
-  readonly hasFreeDelivery = computed(() => this.subtotal() >= FREE_DELIVERY_THRESHOLD);
-  readonly total = computed(() => this.subtotal() + (this.hasFreeDelivery() ? 0 : DELIVERY_CHARGE));
-  readonly deliveryLabel = `₹${DELIVERY_CHARGE}`;
+  readonly freeDeliveryThreshold = this.settings.freeDeliveryThreshold;
+  readonly deliveryCharge = this.settings.deliveryCharge;
+
+  readonly hasFreeDelivery = computed(
+    () => this.subtotal() >= this.freeDeliveryThreshold()
+  );
+  readonly total = computed(
+    () => this.subtotal() + (this.hasFreeDelivery() ? 0 : this.deliveryCharge())
+  );
+  readonly deliveryLabel = computed(() => `₹${this.deliveryCharge()}`);
 
   readonly submitting = signal(false);
   readonly orderPlaced = signal(false);

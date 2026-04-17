@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { environment } from '../../../environments/environment';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { SettingsService } from '../../../core/services/settings.service';
 
 @Component({
   selector: 'app-whatsapp-fab',
@@ -8,7 +8,11 @@ import { environment } from '../../../environments/environment';
   templateUrl: './whatsapp-fab.component.html',
 })
 export class WhatsappFabComponent {
-  readonly whatsappUrl = `https://wa.me/${environment.whatsappNumber}?text=${encodeURIComponent(
-    `Hi! I'm visiting ${environment.brandName} website. I'd like to know more about your jewellery collection.`
-  )}`;
+  private readonly settings = inject(SettingsService);
+
+  readonly whatsappUrl = computed(() => {
+    const number = this.settings.whatsappNumber();
+    const message = encodeURIComponent(this.settings.inquiryMessage());
+    return `https://wa.me/${number}?text=${message}`;
+  });
 }

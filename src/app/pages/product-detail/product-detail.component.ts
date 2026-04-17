@@ -14,6 +14,7 @@ import { ProductService } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
 import { WhatsappService } from '../../core/services/whatsapp.service';
 import { WishlistService } from '../../core/services/wishlist.service';
+import { SettingsService } from '../../core/services/settings.service';
 import { Product } from '../../core/models/product.model';
 import { CurrencyInrPipe } from '../../shared/pipes/currency-inr.pipe';
 import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader/skeleton-loader.component';
@@ -23,9 +24,6 @@ const MAX_ZOOM = 4;
 const DEFAULT_ZOOM = 1.8;
 const ZOOM_STEP = 0.4;
 const ADDED_FEEDBACK_MS = 2000;
-
-const FREE_DELIVERY_THRESHOLD = 999;
-const DELIVERY_CHARGE = 99;
 
 @Component({
   selector: 'app-product-detail',
@@ -40,6 +38,7 @@ export class ProductDetailComponent implements OnInit {
   private readonly cartService = inject(CartService);
   private readonly wishlistService = inject(WishlistService);
   private readonly whatsappService = inject(WhatsappService);
+  private readonly settings = inject(SettingsService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly product = signal<Product | null>(null);
@@ -83,10 +82,14 @@ export class ProductDetailComponent implements OnInit {
     return p ? p.price * this.quantity() : 0;
   });
 
-  readonly hasFreeDelivery = computed(() => this.lineSubtotal() >= FREE_DELIVERY_THRESHOLD);
+  readonly freeDeliveryThreshold = this.settings.freeDeliveryThreshold;
+
+  readonly hasFreeDelivery = computed(
+    () => this.lineSubtotal() >= this.freeDeliveryThreshold()
+  );
 
   readonly deliveryCharge = computed(() =>
-    this.hasFreeDelivery() ? 0 : DELIVERY_CHARGE
+    this.hasFreeDelivery() ? 0 : this.settings.deliveryCharge()
   );
 
   readonly grandTotal = computed(() => this.lineSubtotal() + this.deliveryCharge());

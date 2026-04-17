@@ -1,10 +1,11 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { CartItem } from './cart.service';
+import { SettingsService } from './settings.service';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class WhatsappService {
-  private phoneNumber = environment.whatsappNumber;
+  private readonly settings = inject(SettingsService);
 
   generateOrderMessage(
     items: CartItem[],
@@ -37,7 +38,7 @@ export class WhatsappService {
 
   openWhatsApp(message: string): void {
     const encoded = encodeURIComponent(message);
-    const url = `https://wa.me/${this.phoneNumber}?text=${encoded}`;
+    const url = `https://wa.me/${this.settings.whatsappNumber()}?text=${encoded}`;
     window.open(url, '_blank');
   }
 

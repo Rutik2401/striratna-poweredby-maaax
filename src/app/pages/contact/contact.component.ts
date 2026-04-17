@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SettingsService } from '../../core/services/settings.service';
 import { environment } from '../../environments/environment';
 
 interface ContactForm {
@@ -17,11 +18,18 @@ interface ContactForm {
   templateUrl: './contact.component.html',
 })
 export class ContactComponent {
+  private readonly settings = inject(SettingsService);
+
   readonly messageSent = signal(false);
 
-  readonly whatsappUrl = `https://wa.me/${environment.whatsappNumber}?text=${encodeURIComponent(
-    `Hi! I'm visiting ${environment.brandName} website and would like to get in touch.`
-  )}`;
+  readonly whatsappUrl = computed(() => {
+    const number = this.settings.whatsappNumber();
+    const message = encodeURIComponent(this.settings.inquiryMessage());
+    return `https://wa.me/${number}?text=${message}`;
+  });
+
+  readonly contactEmail = computed(() => this.settings.contactEmail());
+  readonly address = computed(() => this.settings.address());
 
   contactForm: ContactForm = {
     name: '',
@@ -36,7 +44,7 @@ export class ContactComponent {
     const body = encodeURIComponent(
       `Hi ${environment.brandName}!\n\nName: ${name}\nPhone: ${phone}\n\nMessage: ${message}`
     );
-    window.open(`https://wa.me/${environment.whatsappNumber}?text=${body}`, '_blank');
+    window.open(`https://wa.me/${this.settings.whatsappNumber()}?text=${body}`, '_blank');
     this.messageSent.set(true);
   }
 }

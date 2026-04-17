@@ -314,7 +314,7 @@
               </div>
               @if (!hasFreeDelivery()) {
                 <p class="text-[11px] text-gold-dark bg-gold/10 rounded-md p-2 mt-1">
-                  💡 Add {{ (999 - lineSubtotal()) | inr }} more for FREE delivery
+                  💡 Add {{ (freeDeliveryThreshold() - lineSubtotal()) | inr }} more for FREE delivery
                 </p>
               }
             </div>
@@ -486,7 +486,7 @@
             </svg>
           </div>
           <p class="relative text-sm font-bold leading-tight">Insured Shipping</p>
-          <p class="relative text-[10px] text-white/70 mt-0.5">FREE above ₹999</p>
+          <p class="relative text-[10px] text-white/70 mt-0.5">FREE above {{ freeDeliveryThreshold() | inr }}</p>
         </div>
       </div>
     </section>
