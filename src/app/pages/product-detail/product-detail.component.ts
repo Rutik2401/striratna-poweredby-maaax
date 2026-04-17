@@ -13,6 +13,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProductService } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
 import { WhatsappService } from '../../core/services/whatsapp.service';
+import { WishlistService } from '../../core/services/wishlist.service';
 import { Product } from '../../core/models/product.model';
 import { CurrencyInrPipe } from '../../shared/pipes/currency-inr.pipe';
 import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader/skeleton-loader.component';
@@ -22,6 +23,9 @@ const MAX_ZOOM = 4;
 const DEFAULT_ZOOM = 1.8;
 const ZOOM_STEP = 0.4;
 const ADDED_FEEDBACK_MS = 2000;
+
+const FREE_DELIVERY_THRESHOLD = 999;
+const DELIVERY_CHARGE = 99;
 
 @Component({
   selector: 'app-product-detail',
@@ -34,6 +38,7 @@ export class ProductDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly productService = inject(ProductService);
   private readonly cartService = inject(CartService);
+  private readonly wishlistService = inject(WishlistService);
   private readonly whatsappService = inject(WhatsappService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -45,9 +50,17 @@ export class ProductDetailComponent implements OnInit {
   readonly isZooming = signal(false);
   readonly zoomPosition = signal('50% 50%');
   readonly zoomLevel = signal(DEFAULT_ZOOM);
+  readonly showPriceBreakup = signal(false);
+  readonly showDetails = signal(true);
+  readonly shareCopied = signal(false);
 
   readonly minZoom = MIN_ZOOM;
   readonly maxZoom = MAX_ZOOM;
+
+  readonly wishlisted = computed(() => {
+    const p = this.product();
+    return p ? this.wishlistService.idSet().has(p.id) : false;
+  });
 
   readonly hasDiscount = computed(() => {
     const p = this.product();
@@ -58,6 +71,29 @@ export class ProductDetailComponent implements OnInit {
     const p = this.product();
     if (!p?.originalPrice) return 0;
     return Math.round((1 - p.price / p.originalPrice) * 100);
+  });
+
+  readonly savings = computed(() => {
+    const p = this.product();
+    return p?.originalPrice ? p.originalPrice - p.price : 0;
+  });
+
+  readonly lineSubtotal = computed(() => {
+    const p = this.product();
+    return p ? p.price * this.quantity() : 0;
+  });
+
+  readonly hasFreeDelivery = computed(() => this.lineSubtotal() >= FREE_DELIVERY_THRESHOLD);
+
+  readonly deliveryCharge = computed(() =>
+    this.hasFreeDelivery() ? 0 : DELIVERY_CHARGE
+  );
+
+  readonly grandTotal = computed(() => this.lineSubtotal() + this.deliveryCharge());
+
+  readonly hasSpecs = computed(() => {
+    const p = this.product();
+    return !!(p?.material || p?.weight || p?.dimensions);
   });
 
   ngOnInit(): void {
@@ -108,6 +144,56 @@ export class ProductDetailComponent implements OnInit {
 
   decrementQuantity(): void {
     this.quantity.update((q) => (q > 1 ? q - 1 : q));
+  }
+
+  togglePriceBreakup(): void {
+    this.showPriceBreakup.update((v) => !v);
+  }
+
+  toggleDetails(): void {
+    this.showDetails.update((v) => !v);
+  }
+
+  toggleWishlist(): void {
+    const p = this.product();
+    if (!p) return;
+    this.wishlistService.toggle({
+      productId: p.id,
+      name: p.name,
+      image: p.images[0],
+      price: p.price,
+      originalPrice: p.originalPrice,
+      categoryName: p.categoryName,
+      inStock: p.inStock,
+    });
+  }
+
+  async shareProduct(): Promise<void> {
+    const p = this.product();
+    if (!p) return;
+    const url = window.location.href;
+    const shareData: ShareData = {
+      title: p.name,
+      text: `Check out ${p.name} on स्त्रीरत्न`,
+      url,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {
+        /* user cancelled — fall through to clipboard */
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      this.shareCopied.set(true);
+      setTimeout(() => this.shareCopied.set(false), 2000);
+    } catch {
+      /* clipboard blocked — nothing we can do */
+    }
   }
 
   addToCart(product: Product): void {

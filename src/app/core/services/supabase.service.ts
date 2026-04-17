@@ -9,7 +9,22 @@ export class SupabaseService {
   constructor() {
     this.supabase = createClient(
       environment.supabase.url,
-      environment.supabase.anonKey
+      environment.supabase.anonKey,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          storage: localStorage,
+          storageKey: 'sb-striratna-auth',
+          flowType: 'pkce',
+          // Supabase-js defaults to a Web Locks-API lock that times out in 10s
+          // when another tab / the same tab re-registers. For a single-tab admin
+          // panel this produces spurious NavigatorLockAcquireTimeoutError logs
+          // and can briefly drop the session on refresh. Use a no-op lock.
+          lock: async <R,>(_name: string, _timeout: number, fn: () => Promise<R>) => fn(),
+        },
+      }
     );
   }
 

@@ -11,9 +11,17 @@ export class AuthService {
   readonly isLoggedIn = computed(() => !!this.currentUser());
   readonly user = this.currentUser.asReadonly();
 
+  /**
+   * Resolves once the initial session has been hydrated from storage.
+   * Route guards must await this before checking `isLoggedIn()` on page refresh.
+   */
+  readonly ready: Promise<void>;
+
   constructor() {
-    this.supabase.auth.getUser().then(({ data }) => {
-      this.currentUser.set(data.user);
+    // getSession() reads from localStorage first — resolves synchronously on
+    // first tick if a session exists, no network round-trip required.
+    this.ready = this.supabase.auth.getSession().then(({ data }) => {
+      this.currentUser.set(data.session?.user ?? null);
     });
 
     this.supabase.auth.onAuthStateChange((_event, session) => {
