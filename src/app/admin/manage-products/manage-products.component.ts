@@ -186,6 +186,17 @@ export class ManageProductsComponent implements OnInit {
 
   form: ProductForm = { ...EMPTY_FORM };
 
+  // Signal-mirrored for the images field so we can compute the live preview
+  readonly imagesInput = signal('');
+
+  readonly previewImageUrls = computed<readonly string[]>(() =>
+    this.imagesInput()
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => /^https?:\/\//i.test(s))
+      .slice(0, 5)
+  );
+
   constructor() {
     effect(() => {
       const current = this.toast();
@@ -225,6 +236,11 @@ export class ManageProductsComponent implements OnInit {
 
   onSearchInput(value: string): void {
     this.searchQuery.set(value);
+  }
+
+  onImagesInput(value: string): void {
+    this.form.imagesStr = value;
+    this.imagesInput.set(value);
   }
 
   setCategory(value: string): void {
@@ -302,13 +318,14 @@ export class ManageProductsComponent implements OnInit {
 
   editProduct(product: Product): void {
     this.editingId.set(product.id);
+    const imagesStr = product.images.join(', ');
     this.form = {
       name: product.name,
       description: product.description,
       price: product.price,
       originalPrice: product.originalPrice || 0,
       categoryId: product.categoryId,
-      imagesStr: product.images.join(', '),
+      imagesStr,
       material: product.material || '',
       weight: product.weight || '',
       inStock: product.inStock,
@@ -316,6 +333,7 @@ export class ManageProductsComponent implements OnInit {
       bestSeller: product.bestSeller,
       newArrival: product.newArrival,
     };
+    this.imagesInput.set(imagesStr);
     this.showForm.set(true);
   }
 
@@ -348,6 +366,7 @@ export class ManageProductsComponent implements OnInit {
   resetForm(): void {
     this.editingId.set(null);
     this.form = { ...EMPTY_FORM };
+    this.imagesInput.set('');
   }
 
   private async refresh(): Promise<void> {
