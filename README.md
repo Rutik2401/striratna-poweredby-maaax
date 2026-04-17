@@ -1,59 +1,62 @@
-# Striratna
+# स्त्रीरत्न (StriRatna) — Powered by Maaax
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.15.
+> **Premium 1gm art jewellery e-commerce** — साज महाराष्ट्राचा
+> Live at **[striratna.vercel.app](https://striratna.vercel.app)**
 
-## Development server
+An Angular 19 + Supabase storefront with Cashfree online payments, a WhatsApp order channel, and a signed-in admin console.
 
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Quick start
 
 ```bash
-ng generate component component-name
+# Install dependencies
+npm install
+
+# Run the dev server
+npm start                    # → http://localhost:4200
+
+# Production build
+npm run build                # → dist/striratna/browser
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Full documentation
+
+| Doc | What's in it |
+|---|---|
+| [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) | **Main reference** — tech stack, architecture, features, backend, file layout, brand system |
+| [CASHFREE_SETUP.md](CASHFREE_SETUP.md) | Step-by-step payment integration setup (Cashfree keys, Edge Functions, webhook, testing) |
+| [supabase/seed-dummy-orders.sql](supabase/seed-dummy-orders.sql) | 5 dummy orders for UI testing |
+| [supabase-schema.sql](supabase-schema.sql) | Initial database schema |
+
+## Tech at a glance
+
+- **Frontend** — Angular 19 (standalone components, signals, OnPush), Tailwind CSS v4
+- **Backend** — Supabase (PostgreSQL + Auth + Edge Functions + RLS)
+- **Payments** — Cashfree Drop-In SDK + server-side Edge Function + signed webhook
+- **Hosting** — Vercel
+
+## Repo map
+
+```
+src/app/
+├── core/          services, models, guards
+├── shared/        reusable UI components + pipes
+├── pages/         customer-facing routes (home, shop, product, cart, checkout, favourites, about, contact)
+├── admin/         protected admin console (dashboard, orders, products, categories)
+└── environments/  dev + prod config
+
+supabase/
+├── functions/     Edge Functions (cashfree-create-order, cashfree-webhook)
+└── migrations/    DB schema migrations
+```
+
+## Deploy
+
+Push to `main` on GitHub — Vercel auto-deploys. Manual:
 
 ```bash
-ng generate --help
+npx vercel --prod --yes
 ```
 
-## Building
+## License
 
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Private / all rights reserved — स्त्रीरत्न brand, Maaax.
