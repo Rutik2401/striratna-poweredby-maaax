@@ -54,7 +54,7 @@ interface PageMeta {
   readonly subtitle: string;
 }
 
-const RECENT_ORDERS_LIMIT = 6;
+const RECENT_ORDERS_LIMIT = 10;
 
 @Component({
   selector: 'app-admin-dashboard',
