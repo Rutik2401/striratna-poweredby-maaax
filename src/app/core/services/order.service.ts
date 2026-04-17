@@ -1,7 +1,26 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { Observable, from, map } from 'rxjs';
-import { Order, OrderStatus } from '../models/order.model';
+import {
+  Order,
+  OrderStatus,
+  PaymentProvider,
+  PaymentStatus,
+} from '../models/order.model';
+
+type NewOrder = Omit<
+  Order,
+  | 'id'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'paymentStatus'
+  | 'paymentProvider'
+  | 'cashfreeOrderId'
+  | 'paymentSessionId'
+  | 'cashfreePaymentId'
+  | 'paymentError'
+  | 'paidAt'
+>;
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
@@ -51,7 +70,11 @@ export class OrderService {
     );
   }
 
-  async createOrder(order: Omit<Order, 'id'>): Promise<string> {
+  async createOrder(order: NewOrder): Promise<string> {
+    const provider: PaymentProvider = order.paymentMethod;
+    const initialPaymentStatus: PaymentStatus =
+      provider === 'cashfree' ? 'pending' : 'pending';
+
     const { data, error } = await this.supabase
       .from('orders')
       .insert({
@@ -65,6 +88,8 @@ export class OrderService {
         pincode: order.pincode,
         status: order.status,
         payment_method: order.paymentMethod,
+        payment_provider: provider,
+        payment_status: initialPaymentStatus,
         notes: order.notes,
       })
       .select('id')
@@ -81,6 +106,16 @@ export class OrderService {
     if (error) throw error;
   }
 
+  async getPaymentStatus(id: string): Promise<PaymentStatus | undefined> {
+    const { data, error } = await this.supabase
+      .from('orders')
+      .select('payment_status')
+      .eq('id', id)
+      .single();
+    if (error || !data) return undefined;
+    return data.payment_status as PaymentStatus;
+  }
+
   private mapOrder(row: any): Order {
     return {
       id: row.id,
@@ -94,6 +129,13 @@ export class OrderService {
       pincode: row.pincode,
       status: row.status,
       paymentMethod: row.payment_method,
+      paymentStatus: (row.payment_status ?? 'pending') as PaymentStatus,
+      paymentProvider: (row.payment_provider ?? row.payment_method) as PaymentProvider,
+      cashfreeOrderId: row.cashfree_order_id ?? undefined,
+      paymentSessionId: row.payment_session_id ?? undefined,
+      cashfreePaymentId: row.cashfree_payment_id ?? undefined,
+      paymentError: row.payment_error ?? undefined,
+      paidAt: row.paid_at ? new Date(row.paid_at) : undefined,
       notes: row.notes,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),

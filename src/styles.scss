@@ -36,6 +36,25 @@
     background-color: var(--color-gold);
     color: white;
   }
+
+  /* Tailwind v4 ships buttons with cursor:default; restore pointer for clickable affordance. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  a {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [disabled] {
+    cursor: not-allowed;
+  }
+
+  /* Global smooth focus ring for keyboard users */
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
 @utility scrollbar-hide {
@@ -81,4 +100,145 @@
 @keyframes slideInRight {
   from { opacity: 0; transform: translateX(30px); }
   to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(-3deg); }
+}
+
+@keyframes ringPulse {
+  0% { transform: scale(0.85); opacity: 0.6; }
+  70% { transform: scale(1.25); opacity: 0; }
+  100% { transform: scale(1.25); opacity: 0; }
+}
+
+@keyframes sparkleTwinkle {
+  0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+
+/* Empty-state bag illustration */
+.empty-bag {
+  position: relative;
+  width: 11rem;
+  height: 11rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.empty-bag__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(212, 175, 55, 0.15) 0%,
+    rgba(212, 175, 55, 0.05) 50%,
+    transparent 70%);
+}
+.empty-bag__pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  animation: ringPulse 2.8s ease-out infinite;
+}
+.empty-bag__pulse--delay {
+  animation-delay: 1.4s;
+}
+.empty-bag__inner {
+  position: relative;
+  width: 70%;
+  height: 70%;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #FFF8E7 0%, #F5EDD6 100%);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.8),
+    inset 0 -10px 20px rgba(212, 175, 55, 0.08),
+    0 10px 25px -10px rgba(212, 175, 55, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.empty-bag__icon {
+  animation: gentleFloat 3.5s ease-in-out infinite;
+}
+.empty-bag__sparkle {
+  position: absolute;
+  color: #D4AF37;
+  animation: sparkleTwinkle 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+.empty-bag__sparkle--tl { top: 12%; left: 10%; animation-delay: 0s; }
+.empty-bag__sparkle--tr { top: 18%; right: 8%; animation-delay: 0.8s; }
+.empty-bag__sparkle--br { bottom: 14%; right: 18%; animation-delay: 1.2s; }
+.empty-bag__sparkle--bl { bottom: 20%; left: 12%; animation-delay: 1.8s; }
+
+.stagger-fade > * { opacity: 0; animation: fadeInUp 0.6s ease-out forwards; }
+.stagger-fade > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-fade > *:nth-child(2) { animation-delay: 0.25s; }
+.stagger-fade > *:nth-child(3) { animation-delay: 0.4s; }
+.stagger-fade > *:nth-child(4) { animation-delay: 0.55s; }
+
+/* Floating-label pattern (works with autofill) */
+.floating-field {
+  position: relative;
+}
+.floating-field > input,
+.floating-field > textarea,
+.floating-field > select {
+  width: 100%;
+  padding: 1.25rem 1rem 0.5rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  color: #1a1a1a;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.floating-field > textarea {
+  padding-top: 1.5rem;
+  min-height: 6rem;
+  resize: none;
+}
+.floating-field > input:focus,
+.floating-field > textarea:focus,
+.floating-field > select:focus {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+.floating-field > label {
+  position: absolute;
+  left: 1rem;
+  top: 0.95rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  pointer-events: none;
+  transform-origin: left top;
+  transition: transform 0.18s ease, color 0.18s ease;
+  background: transparent;
+}
+.floating-field > input:focus ~ label,
+.floating-field > textarea:focus ~ label,
+.floating-field > select:focus ~ label,
+.floating-field > input:not(:placeholder-shown) ~ label,
+.floating-field > textarea:not(:placeholder-shown) ~ label,
+.floating-field > select.has-value ~ label {
+  transform: translateY(-0.6rem) scale(0.78);
+  color: var(--color-gold-dark);
+}
+/* Autofill fix: force label to float when Chrome autofills */
+.floating-field > input:-webkit-autofill ~ label {
+  transform: translateY(-0.6rem) scale(0.78);
+  color: var(--color-gold-dark);
+}
+.floating-field > input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #fff inset;
+  -webkit-text-fill-color: #1a1a1a;
 }

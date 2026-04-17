@@ -25,6 +25,13 @@ export const routes: Routes = [
       import('./pages/cart/cart.component').then((m) => m.CartComponent),
   },
   {
+    path: 'favourites',
+    loadComponent: () =>
+      import('./pages/favourites/favourites.component').then(
+        (m) => m.FavouritesComponent
+      ),
+  },
+  {
     path: 'checkout',
     loadComponent: () =>
       import('./pages/checkout/checkout.component').then(

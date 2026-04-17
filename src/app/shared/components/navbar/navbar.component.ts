@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CartService } from '../../../core/services/cart.service';
+import { WishlistService } from '../../../core/services/wishlist.service';
 
 interface NavLink {
   readonly path: string;
@@ -17,8 +18,10 @@ interface NavLink {
 })
 export class NavbarComponent {
   private readonly cartService = inject(CartService);
+  private readonly wishlistService = inject(WishlistService);
 
   readonly cartCount = this.cartService.itemCount;
+  readonly wishlistCount = this.wishlistService.count;
   readonly mobileOpen = signal(false);
   readonly scrolled = signal(false);
 

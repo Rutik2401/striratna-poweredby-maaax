@@ -1,19 +1,23 @@
 <nav
   class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-  [class]="scrolled() ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-transparent'"
+  [class]="scrolled() ? 'bg-white/90 backdrop-blur-xl shadow-md shadow-maroon/5 border-b border-gold/10' : 'bg-transparent'"
 >
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16 lg:h-20">
       <!-- Logo -->
-      <a routerLink="/" class="flex items-center gap-2 group">
-        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center">
-          <span class="text-white font-heading font-bold text-lg">स्त्री</span>
+      <a routerLink="/" class="flex items-center gap-2.5 group cursor-pointer shrink-0">
+        <div class="relative w-10 h-10 lg:w-11 lg:h-11 rounded-2xl bg-gradient-to-br from-gold to-gold-dark
+                    flex items-center justify-center shadow-lg shadow-gold/25
+                    group-hover:shadow-gold/40 group-hover:scale-105 transition-all duration-300">
+          <span class="text-white font-heading font-bold text-base lg:text-lg leading-none">स्त्री</span>
+          <span class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/20 pointer-events-none"></span>
         </div>
         <div class="hidden sm:block">
-          <h1 class="font-heading text-xl font-bold text-maroon group-hover:text-gold-dark transition-colors">
+          <h1 class="font-heading text-lg lg:text-xl font-bold text-maroon leading-tight
+                     group-hover:text-gold-dark transition-colors duration-300">
             स्त्रीरत्न
           </h1>
-          <p class="text-[10px] text-gray-500 -mt-1 tracking-wider">POWERED BY MAAAX</p>
+          <p class="text-[9px] lg:text-[10px] text-gray-500 -mt-0.5 tracking-[0.2em] uppercase">Powered by Maaax</p>
         </div>
       </a>
 
@@ -24,7 +28,7 @@
             [routerLink]="link.path"
             routerLinkActive="text-gold font-semibold"
             [routerLinkActiveOptions]="{ exact: link.path === '/' }"
-            class="text-sm font-medium text-gray-700 hover:text-gold transition-colors relative
+            class="text-sm font-medium text-gray-700 hover:text-gold transition-colors relative cursor-pointer
                    after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5
                    after:bg-gold after:transition-all hover:after:w-full"
           >
@@ -34,19 +38,43 @@
       </div>
 
       <!-- Right Actions -->
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1 sm:gap-2">
+        <!-- Favourites -->
+        <a
+          routerLink="/favourites"
+          aria-label="Favourites"
+          title="View Favourites"
+          class="relative p-2.5 rounded-full hover:bg-rose-500/10 transition-colors cursor-pointer group"
+        >
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-maroon group-hover:text-rose-500 transition-colors"
+               [attr.fill]="wishlistCount() > 0 ? 'currentColor' : 'none'"
+               stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+          @if (wishlistCount() > 0) {
+            <span class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-gradient-to-br from-rose-500 to-rose-600
+                         text-white text-[10px] font-bold rounded-full flex items-center justify-center
+                         shadow-md shadow-rose-500/40 animate-[scaleIn_0.3s_ease-out] ring-2 ring-white">
+              {{ wishlistCount() }}
+            </span>
+          }
+        </a>
+
         <!-- Cart -->
         <a
           routerLink="/cart"
-          class="relative p-2 rounded-full hover:bg-gold/10 transition-colors"
+          aria-label="Cart"
+          class="relative p-2.5 rounded-full hover:bg-gold/10 transition-colors cursor-pointer"
         >
-          <svg class="w-6 h-6 text-maroon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-maroon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
               d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
           </svg>
           @if (cartCount() > 0) {
-            <span class="absolute -top-1 -right-1 w-5 h-5 bg-gold text-white text-xs font-bold
-                         rounded-full flex items-center justify-center animate-[scaleIn_0.3s_ease-out]">
+            <span class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-gradient-to-br from-gold to-gold-dark
+                         text-white text-[10px] font-bold rounded-full flex items-center justify-center
+                         shadow-md shadow-gold/40 animate-[scaleIn_0.3s_ease-out] ring-2 ring-white">
               {{ cartCount() }}
             </span>
           }
@@ -55,9 +83,10 @@
         <!-- Mobile Menu Toggle -->
         <button
           (click)="toggleMobile()"
-          class="lg:hidden p-2 rounded-full hover:bg-gold/10 transition-colors"
+          aria-label="Toggle menu"
+          class="lg:hidden p-2.5 rounded-full hover:bg-gold/10 transition-colors cursor-pointer"
         >
-          <svg class="w-6 h-6 text-maroon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-maroon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             @if (mobileOpen()) {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             } @else {
@@ -71,7 +100,7 @@
 
   <!-- Mobile Menu -->
   @if (mobileOpen()) {
-    <div class="lg:hidden bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-xl">
+    <div class="lg:hidden bg-white/95 backdrop-blur-xl border-t border-gold/10 shadow-xl animate-[slideDown_0.2s_ease-out]">
       <div class="px-4 py-4 space-y-1">
         @for (link of navLinks; track link.path) {
           <a
@@ -80,7 +109,7 @@
             [routerLinkActiveOptions]="{ exact: link.path === '/' }"
             (click)="closeMobile()"
             class="block px-4 py-3 rounded-xl text-sm font-medium text-gray-700
-                   hover:bg-gold/10 hover:text-gold transition-all"
+                   hover:bg-gold/10 hover:text-gold transition-all cursor-pointer"
           >
             {{ link.label }}
           </a>

@@ -2,10 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Product } from '../../../core/models/product.model';
-import { CartService } from '../../../core/services/cart.service';
+import { WishlistService } from '../../../core/services/wishlist.service';
 import { CurrencyInrPipe } from '../../pipes/currency-inr.pipe';
-
-const ADDED_FEEDBACK_MS = 1500;
 
 @Component({
   selector: 'app-product-card',
@@ -17,11 +15,13 @@ const ADDED_FEEDBACK_MS = 1500;
 export class ProductCardComponent {
   readonly product = input.required<Product>();
 
-  private readonly cartService = inject(CartService);
+  private readonly wishlistService = inject(WishlistService);
 
   readonly imageLoaded = signal(false);
-  readonly addedToCart = signal(false);
-  readonly wishlisted = signal(false);
+
+  readonly wishlisted = computed(() =>
+    this.wishlistService.idSet().has(this.product().id)
+  );
 
   readonly hasDiscount = computed(() => {
     const p = this.product();
@@ -43,23 +43,18 @@ export class ProductCardComponent {
     this.imageLoaded.set(true);
   }
 
-  addToCart(event: Event): void {
+  toggleWishlist(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
     const p = this.product();
-    this.cartService.addItem({
+    this.wishlistService.toggle({
       productId: p.id,
       name: p.name,
       image: p.images[0],
       price: p.price,
+      originalPrice: p.originalPrice,
+      categoryName: p.categoryName,
+      inStock: p.inStock,
     });
-    this.addedToCart.set(true);
-    setTimeout(() => this.addedToCart.set(false), ADDED_FEEDBACK_MS);
-  }
-
-  toggleWishlist(event: Event): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.wishlisted.update((v) => !v);
   }
 }
