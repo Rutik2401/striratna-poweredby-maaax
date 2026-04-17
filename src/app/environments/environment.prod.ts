@@ -1,12 +1,10 @@
 export const environment = {
   production: true,
-  firebase: {
-    apiKey: 'YOUR_API_KEY',
-    authDomain: 'YOUR_PROJECT.firebaseapp.com',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_PROJECT.appspot.com',
-    messagingSenderId: 'YOUR_SENDER_ID',
-    appId: 'YOUR_APP_ID'
+  supabase: {
+    url: 'https://rybelswnfgrtashimtty.supabase.co',
+    anonKey: 'sb_publishable_-j6XbL2tNFvmGiUdAJR3uw_gDWUTeDX',
   },
-  whatsappNumber: '91XXXXXXXXXX'
+  whatsappNumber: '919579393985',
+  brandName: 'स्त्रीरत्न',
+  tagline: 'साज महाराष्ट्राचा',
 };

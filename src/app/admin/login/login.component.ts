@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -9,65 +9,52 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-cream to-cream-dark px-4">
-      <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border-t-4 border-maroon p-8">
-        <!-- Brand Header -->
+    <div class="min-h-screen bg-cream flex items-center justify-center px-4">
+      <div class="w-full max-w-md">
+        <!-- Logo -->
         <div class="text-center mb-8">
-          <h1 class="text-3xl font-bold text-maroon mb-1">&#x0938;&#x094D;&#x0924;&#x094D;&#x0930;&#x0940;&#x0930;&#x0924;&#x094D;&#x0928;</h1>
-          <p class="text-sm text-gray-400 mb-2">Powered by Maaax</p>
-          <p class="text-sm font-semibold text-gray-500 uppercase tracking-widest">Admin Panel</p>
+          <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-gold to-gold-dark
+                      flex items-center justify-center">
+            <span class="text-white font-heading font-bold text-2xl">स्त्री</span>
+          </div>
+          <h1 class="font-heading text-2xl font-bold text-maroon">Admin Panel</h1>
+          <p class="text-sm text-gray-500 mt-1">स्त्रीरत्न - Powered by Maaax</p>
         </div>
 
-        <!-- Login Form -->
-        <form (ngSubmit)="onLogin()" class="flex flex-col gap-5">
-          <!-- Email -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <div class="relative">
-              <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl">email</span>
-              <input type="email" [(ngModel)]="email" name="email"
-                     placeholder="admin@example.com" required
-                     class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-maroon focus:border-maroon transition" />
+        <!-- Form -->
+        <div class="bg-white rounded-2xl p-8 shadow-sm">
+          <form (ngSubmit)="login()" class="space-y-5">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input type="email" [(ngModel)]="email" name="email" required
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold"
+                placeholder="admin@striratna.in" />
             </div>
-          </div>
-
-          <!-- Password -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <div class="relative">
-              <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl">lock</span>
-              <input [type]="hidePassword ? 'password' : 'text'"
-                     [(ngModel)]="password" name="password" required
-                     class="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-maroon focus:border-maroon transition" />
-              <button type="button" (click)="hidePassword = !hidePassword"
-                      class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                <span class="material-icons text-xl">{{ hidePassword ? 'visibility_off' : 'visibility' }}</span>
-              </button>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <input type="password" [(ngModel)]="password" name="password" required
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold"
+                placeholder="Enter your password" />
             </div>
-          </div>
 
-          <!-- Error Message -->
-          <div *ngIf="errorMessage"
-               class="flex items-center gap-2 text-red-700 text-sm bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-            <span class="material-icons text-lg">error</span>
-            <span>{{ errorMessage }}</span>
-          </div>
+            @if (error()) {
+              <div class="p-3 bg-red-50 text-red-600 text-sm rounded-xl">
+                {{ error() }}
+              </div>
+            }
 
-          <!-- Login Button -->
-          <button type="submit" [disabled]="isLoading"
-                  class="w-full bg-maroon hover:bg-maroon-dark text-white font-semibold py-3 rounded-lg transition disabled:opacity-60 flex items-center justify-center gap-2">
-            <svg *ngIf="isLoading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-            </svg>
-            <span *ngIf="!isLoading">Login</span>
-            <span *ngIf="isLoading">Logging in...</span>
-          </button>
-        </form>
+            <button type="submit" [disabled]="loading()"
+              class="w-full px-6 py-4 bg-gradient-to-r from-maroon to-maroon-dark text-white
+                     font-semibold rounded-full shadow-lg disabled:opacity-50 transition-all active:scale-95">
+              {{ loading() ? 'Signing in...' : 'Sign In' }}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   `,
-  styles: [],
 })
 export class LoginComponent {
   private authService = inject(AuthService);
@@ -75,32 +62,22 @@ export class LoginComponent {
 
   email = '';
   password = '';
-  hidePassword = true;
-  isLoading = false;
-  errorMessage = '';
+  loading = signal(false);
+  error = signal('');
 
-  async onLogin(): Promise<void> {
-    if (!this.email || !this.password) {
-      this.errorMessage = 'Please enter both email and password.';
-      return;
-    }
+  async login(): Promise<void> {
+    if (!this.email || !this.password) return;
 
-    this.isLoading = true;
-    this.errorMessage = '';
+    this.loading.set(true);
+    this.error.set('');
 
     try {
       await this.authService.login(this.email, this.password);
       this.router.navigate(['/admin/dashboard']);
     } catch (err: any) {
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        this.errorMessage = 'Invalid email or password.';
-      } else if (err.code === 'auth/too-many-requests') {
-        this.errorMessage = 'Too many failed attempts. Please try again later.';
-      } else {
-        this.errorMessage = 'Login failed. Please try again.';
-      }
+      this.error.set('Invalid email or password. Please try again.');
     } finally {
-      this.isLoading = false;
+      this.loading.set(false);
     }
   }
 }

@@ -1,29 +1,35 @@
-import { Injectable, inject } from '@angular/core';
-import {
-  Auth,
-  signInWithEmailAndPassword,
-  signOut,
-  user,
-  User
-} from '@angular/fire/auth';
-import { Observable, map } from 'rxjs';
+import { Injectable, inject, signal, computed } from '@angular/core';
+import { SupabaseService } from './supabase.service';
+import { User } from '@supabase/supabase-js';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private auth = inject(Auth);
+  private supabaseService = inject(SupabaseService);
+  private supabase = this.supabaseService.client;
 
-  readonly user$: Observable<User | null> = user(this.auth);
-  readonly isLoggedIn$: Observable<boolean> = this.user$.pipe(map(u => !!u));
+  private currentUser = signal<User | null>(null);
+  readonly isLoggedIn = computed(() => !!this.currentUser());
+  readonly user = this.currentUser.asReadonly();
 
-  login(email: string, password: string) {
-    return signInWithEmailAndPassword(this.auth, email, password);
+  constructor() {
+    this.supabase.auth.getUser().then(({ data }) => {
+      this.currentUser.set(data.user);
+    });
+
+    this.supabase.auth.onAuthStateChange((_event, session) => {
+      this.currentUser.set(session?.user ?? null);
+    });
   }
 
-  logout() {
-    return signOut(this.auth);
+  async login(email: string, password: string): Promise<void> {
+    const { error } = await this.supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
   }
 
-  getCurrentUser(): User | null {
-    return this.auth.currentUser;
+  async logout(): Promise<void> {
+    await this.supabase.auth.signOut();
   }
 }

@@ -1,141 +1,161 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { CartService, CartItem } from '../../core/services/cart.service';
+import { RouterLink } from '@angular/router';
+import { CartService } from '../../core/services/cart.service';
 import { CurrencyInrPipe } from '../../shared/pipes/currency-inr.pipe';
 
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    CurrencyInrPipe,
-  ],
+  imports: [CommonModule, RouterLink, CurrencyInrPipe],
   template: `
-    <div class="max-w-[1100px] mx-auto p-4 md:p-6">
-      <h1 class="text-center text-2xl md:text-3xl font-bold text-maroon mb-2">Shopping Cart</h1>
-      <div class="w-[60px] h-[3px] bg-gold mx-auto mb-6"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+      <h1 class="font-heading text-2xl lg:text-4xl font-bold text-maroon mb-8">Shopping Cart</h1>
 
-      <!-- Empty Cart -->
-      <div *ngIf="cartService.items().length === 0" class="text-center py-16">
-        <span class="material-icons text-7xl text-gray-300">shopping_cart</span>
-        <h2 class="text-maroon text-xl font-bold mt-4 mb-2">Your cart is empty</h2>
-        <p class="text-gray-500 mb-6">Looks like you haven't added any jewelry yet</p>
-        <a
-          routerLink="/shop"
-          class="inline-block bg-gold text-maroon font-semibold px-8 py-3 rounded-full hover:bg-gold-light transition-colors"
-        >
-          Continue Shopping
-        </a>
-      </div>
-
-      <!-- Cart Items -->
-      <div *ngIf="cartService.items().length > 0" class="grid grid-cols-1 md:grid-cols-[1fr_360px] gap-6 items-start">
-        <div class="flex flex-col gap-4">
-          <div
-            class="flex gap-4 bg-cream p-4 rounded-xl relative"
-            *ngFor="let item of cartService.items()"
-          >
-            <div class="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden flex-shrink-0">
-              <img [src]="item.product.images[0]" [alt]="item.product.nameEn" class="w-full h-full object-cover" />
-            </div>
-            <div class="flex-1 min-w-0">
-              <h3 class="text-maroon font-semibold text-base mb-1 truncate">{{ item.product.nameEn }}</h3>
-              <p class="text-gold font-semibold mb-2">{{ item.product.price | currencyInr }}</p>
-              <div class="flex items-center gap-3 mb-2">
-                <button
-                  class="w-8 h-8 rounded-full bg-gold text-maroon flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gold-light transition-colors"
-                  (click)="updateQty(item, -1)"
-                  [disabled]="item.quantity <= 1"
-                >
-                  <span class="material-icons text-base">remove</span>
-                </button>
-                <span class="font-semibold text-lg">{{ item.quantity }}</span>
-                <button
-                  class="w-8 h-8 rounded-full bg-gold text-maroon flex items-center justify-center hover:bg-gold-light transition-colors"
-                  (click)="updateQty(item, 1)"
-                >
-                  <span class="material-icons text-base">add</span>
-                </button>
-              </div>
-              <p class="text-gray-700 text-sm font-medium">
-                Total: {{ item.product.price * item.quantity | currencyInr }}
-              </p>
-            </div>
-            <button
-              class="absolute top-3 right-3 text-rose-gold hover:text-maroon transition-colors"
-              (click)="removeItem(item.product.id!)"
-            >
-              <span class="material-icons">delete</span>
-            </button>
+      @if (cartService.isEmpty()) {
+        <div class="text-center py-20">
+          <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-cream flex items-center justify-center">
+            <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
           </div>
-        </div>
-
-        <!-- Price Summary -->
-        <div class="bg-cream p-6 rounded-xl sticky top-4">
-          <h2 class="text-maroon text-xl font-bold mb-4">Price Summary</h2>
-          <div class="flex justify-between mb-3">
-            <span>Subtotal</span>
-            <span>{{ subtotal() | currencyInr }}</span>
-          </div>
-          <div class="flex justify-between mb-3">
-            <span>Delivery</span>
-            <span [class.text-green-500]="deliveryCharge() === 0" [class.font-semibold]="deliveryCharge() === 0">
-              {{ deliveryCharge() === 0 ? 'FREE' : (deliveryCharge() | currencyInr) }}
-            </span>
-          </div>
-          <p class="text-rose-gold text-sm mb-3" *ngIf="subtotal() < 999">
-            Add {{ 999 - subtotal() | currencyInr }} more for FREE delivery
-          </p>
-          <div class="border-t-2 border-gold my-3"></div>
-          <div class="flex justify-between text-xl font-bold text-maroon mb-6">
-            <span>Total</span>
-            <span>{{ total() | currencyInr }}</span>
-          </div>
-          <a
-            routerLink="/checkout"
-            class="block w-full text-center bg-gold text-maroon text-lg font-semibold py-3 rounded-full hover:bg-gold-light transition-colors"
-          >
-            Proceed to Checkout
-          </a>
-          <a
-            routerLink="/shop"
-            class="block w-full text-center mt-3 border-2 border-maroon text-maroon py-2.5 rounded-full font-medium hover:bg-maroon hover:text-cream transition-colors"
-          >
+          <h2 class="font-heading text-xl font-semibold text-gray-700 mb-2">Your cart is empty</h2>
+          <p class="text-gray-500 mb-6">Start shopping to add items to your cart</p>
+          <a routerLink="/shop"
+             class="inline-flex items-center px-6 py-3 bg-maroon text-white rounded-full text-sm font-semibold
+                    hover:bg-maroon-dark transition-colors">
             Continue Shopping
           </a>
         </div>
-      </div>
+      } @else {
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Cart Items -->
+          <div class="lg:col-span-2 space-y-4">
+            @for (item of cartService.items(); track item.productId) {
+              <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm flex gap-4 sm:gap-6
+                          transition-all duration-300 hover:shadow-md">
+                <!-- Image -->
+                <a [routerLink]="['/product', item.productId]"
+                   class="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                  <img [src]="item.image" [alt]="item.name"
+                       class="w-full h-full object-cover" loading="lazy" />
+                </a>
+
+                <!-- Details -->
+                <div class="flex-1 min-w-0">
+                  <a [routerLink]="['/product', item.productId]"
+                     class="font-heading text-base sm:text-lg font-semibold text-gray-900
+                            hover:text-maroon transition-colors line-clamp-2">
+                    {{ item.name }}
+                  </a>
+                  <p class="text-maroon font-bold mt-1">{{ item.price | inr }}</p>
+
+                  <div class="flex items-center justify-between mt-3">
+                    <!-- Quantity -->
+                    <div class="flex items-center bg-cream border border-gray-200 rounded-lg overflow-hidden">
+                      <button
+                        (click)="updateQuantity(item.productId, item.quantity - 1)"
+                        class="w-8 h-8 flex items-center justify-center text-gray-600
+                               hover:bg-gray-100 transition-colors text-sm">-</button>
+                      <span class="w-10 h-8 flex items-center justify-center text-sm font-semibold
+                                   border-x border-gray-200">
+                        {{ item.quantity }}
+                      </span>
+                      <button
+                        (click)="updateQuantity(item.productId, item.quantity + 1)"
+                        class="w-8 h-8 flex items-center justify-center text-gray-600
+                               hover:bg-gray-100 transition-colors text-sm">+</button>
+                    </div>
+
+                    <!-- Remove -->
+                    <button
+                      (click)="removeItem(item.productId)"
+                      class="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Clear Cart -->
+            <div class="text-right">
+              <button
+                (click)="clearCart()"
+                class="text-sm text-gray-500 hover:text-red-500 transition-colors underline"
+              >
+                Clear all items
+              </button>
+            </div>
+          </div>
+
+          <!-- Order Summary -->
+          <div class="lg:col-span-1">
+            <div class="bg-white rounded-2xl p-6 shadow-sm sticky top-24">
+              <h3 class="font-heading text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
+
+              <div class="space-y-3 mb-6">
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-500">Subtotal ({{ cartService.itemCount() }} items)</span>
+                  <span class="font-medium">{{ cartService.totalAmount() | inr }}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-500">Delivery</span>
+                  <span class="font-medium text-green-600">
+                    {{ cartService.totalAmount() >= 999 ? 'FREE' : '₹99' }}
+                  </span>
+                </div>
+                <hr class="border-gray-100" />
+                <div class="flex justify-between text-base font-bold">
+                  <span class="text-gray-900">Total</span>
+                  <span class="text-maroon">
+                    {{ (cartService.totalAmount() >= 999 ? cartService.totalAmount() : cartService.totalAmount() + 99) | inr }}
+                  </span>
+                </div>
+              </div>
+
+              @if (cartService.totalAmount() < 999) {
+                <p class="text-xs text-gold bg-gold/10 rounded-lg p-3 mb-4 text-center">
+                  Add {{ (999 - cartService.totalAmount()) | inr }} more for FREE delivery!
+                </p>
+              }
+
+              <a routerLink="/checkout"
+                 class="block w-full text-center px-6 py-4 bg-gradient-to-r from-maroon to-maroon-dark
+                        text-white font-semibold rounded-full shadow-lg shadow-maroon/25
+                        hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 active:scale-95">
+                Proceed to Checkout
+              </a>
+
+              <a routerLink="/shop"
+                 class="block w-full text-center px-6 py-3 text-sm font-medium text-gray-600
+                        hover:text-maroon transition-colors mt-3">
+                Continue Shopping
+              </a>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   `,
-  styles: [`
-    :host { display: block; }
-  `],
 })
 export class CartComponent {
   cartService = inject(CartService);
 
-  subtotal = this.cartService.total;
-
-  deliveryCharge = computed(() => (this.subtotal() >= 999 ? 0 : 49));
-
-  total = computed(() => this.subtotal() + this.deliveryCharge());
-
-  updateQty(item: CartItem, delta: number): void {
-    if (delta > 0) {
-      this.cartService.addToCart(item.product);
-    } else if (item.quantity > 1) {
-      // Replace item with quantity - 1
-      this.cartService.removeFromCart(item.product.id!);
-      const newQty = item.quantity - 1;
-      for (let i = 0; i < newQty; i++) {
-        this.cartService.addToCart(item.product);
-      }
-    }
+  updateQuantity(productId: string, quantity: number): void {
+    this.cartService.updateQuantity(productId, quantity);
   }
 
   removeItem(productId: string): void {
-    this.cartService.removeFromCart(productId);
+    this.cartService.removeItem(productId);
+  }
+
+  clearCart(): void {
+    this.cartService.clearCart();
   }
 }

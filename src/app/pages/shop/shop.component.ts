@@ -1,301 +1,171 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterModule } from '@angular/router';
-import { Product } from '../../core/models/product.model';
-import { Category } from '../../core/models/category.model';
+import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProductService } from '../../core/services/product.service';
 import { CategoryService } from '../../core/services/category.service';
+import { Product } from '../../core/models/product.model';
+import { Category } from '../../core/models/category.model';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
-
-interface PriceRange {
-  label: string;
-  min: number;
-  max: number;
-  checked: boolean;
-}
+import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader/skeleton-loader.component';
 
 @Component({
   selector: 'app-shop',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterModule,
-    ProductCardComponent,
-  ],
+  imports: [CommonModule, FormsModule, ProductCardComponent, SkeletonLoaderComponent],
   template: `
-    <div class="max-w-[1200px] mx-auto p-4 md:p-6">
-      <h1 class="text-center text-2xl md:text-3xl font-bold text-maroon mb-2">Our Collection</h1>
-      <div class="w-[60px] h-[3px] bg-gold mx-auto mb-6"></div>
+    <!-- Hero Banner -->
+    <section class="bg-gradient-to-r from-maroon to-maroon-dark text-white py-12 lg:py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="font-heading text-3xl lg:text-5xl font-bold mb-3">Our Collection</h1>
+        <p class="text-white/70 text-sm lg:text-base">
+          Discover premium 1gm art jewellery crafted with love
+        </p>
+      </div>
+    </section>
 
-      <!-- Search & Sort -->
-      <div class="flex flex-wrap gap-3 mb-6">
-        <div class="flex-1 min-w-[200px] relative">
-          <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+      <!-- Filters Bar -->
+      <div class="flex flex-col sm:flex-row gap-4 mb-8">
+        <!-- Search -->
+        <div class="relative flex-1">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
           <input
             type="text"
-            placeholder="Search jewelry..."
-            [(ngModel)]="searchTerm"
-            (ngModelChange)="applyFilters()"
-            class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold"
+            placeholder="Search jewellery..."
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="onSearch($event)"
+            class="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm
+                   focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold transition-all"
           />
         </div>
-        <div class="min-w-[180px]">
-          <select
-            [(ngModel)]="sortBy"
-            (ngModelChange)="applyFilters()"
-            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold"
-          >
-            <option value="newest">Sort: Newest</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-          </select>
+
+        <!-- Category Filter -->
+        <select
+          [(ngModel)]="selectedCategory"
+          (ngModelChange)="onCategoryChange($event)"
+          class="px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm
+                 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold appearance-none
+                 cursor-pointer min-w-[160px]"
+        >
+          <option value="">All Categories</option>
+          @for (cat of categories(); track cat.id) {
+            <option [value]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
+
+        <!-- Sort -->
+        <select
+          [(ngModel)]="sortBy"
+          (ngModelChange)="applyFilters()"
+          class="px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm
+                 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold appearance-none
+                 cursor-pointer min-w-[160px]"
+        >
+          <option value="newest">Newest First</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+        </select>
+      </div>
+
+      <!-- Active Filters -->
+      @if (selectedCategory || searchQuery) {
+        <div class="flex items-center gap-2 mb-6 flex-wrap">
+          <span class="text-sm text-gray-500">Filters:</span>
+          @if (selectedCategory) {
+            <button
+              (click)="selectedCategory = ''; onCategoryChange('')"
+              class="inline-flex items-center gap-1 px-3 py-1.5 bg-gold/10 text-gold text-xs font-medium rounded-full
+                     hover:bg-gold/20 transition-colors"
+            >
+              {{ getCategoryName(selectedCategory) }}
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          }
+          @if (searchQuery) {
+            <button
+              (click)="searchQuery = ''; onSearch('')"
+              class="inline-flex items-center gap-1 px-3 py-1.5 bg-maroon/10 text-maroon text-xs font-medium rounded-full
+                     hover:bg-maroon/20 transition-colors"
+            >
+              "{{ searchQuery }}"
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          }
         </div>
-      </div>
+      }
 
-      <div class="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
-        <!-- Mobile filter toggle -->
-        <button
-          class="md:hidden flex items-center justify-center gap-2 w-full py-2.5 border-2 border-maroon text-maroon rounded-lg font-medium hover:bg-maroon hover:text-cream transition-colors"
-          (click)="showFilters = !showFilters"
-        >
-          <span class="material-icons text-xl">filter_list</span>
-          {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
-        </button>
+      <!-- Results Count -->
+      <p class="text-sm text-gray-500 mb-6">
+        {{ filteredProducts().length }} {{ filteredProducts().length === 1 ? 'product' : 'products' }} found
+      </p>
 
-        <!-- Sidebar Filters -->
-        <aside
-          class="self-start sticky top-4"
-          [class.hidden]="!showFilters"
-          [class.md:block]="true"
-        >
-          <!-- Category Filter -->
-          <div class="border border-gray-200 rounded-lg mb-2 overflow-hidden">
-            <button
-              class="w-full flex items-center justify-between px-4 py-3 bg-white font-semibold text-maroon"
-              (click)="showCategoryFilter = !showCategoryFilter"
-            >
-              Category
-              <span class="material-icons text-sm transition-transform" [class.rotate-180]="showCategoryFilter">expand_more</span>
-            </button>
-            <div *ngIf="showCategoryFilter" class="px-4 pb-3 flex flex-col gap-2">
-              <label
-                *ngFor="let cat of categories"
-                class="flex items-center gap-2 cursor-pointer text-sm text-gray-700 hover:text-maroon"
-              >
-                <input
-                  type="checkbox"
-                  [checked]="selectedCategories.has(cat.id!)"
-                  (change)="toggleCategory(cat.id!)"
-                  class="w-4 h-4 accent-maroon rounded"
-                />
-                {{ cat.nameEn }}
-              </label>
-            </div>
+      <!-- Products Grid -->
+      @if (loading()) {
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+          @for (_ of [1,2,3,4,5,6,7,8]; track $index) {
+            <app-skeleton-loader type="product-card" />
+          }
+        </div>
+      } @else if (filteredProducts().length === 0) {
+        <div class="text-center py-20">
+          <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+            <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
           </div>
-
-          <!-- Price Range Filter -->
-          <div class="border border-gray-200 rounded-lg mb-2 overflow-hidden">
-            <button
-              class="w-full flex items-center justify-between px-4 py-3 bg-white font-semibold text-maroon"
-              (click)="showPriceFilter = !showPriceFilter"
-            >
-              Price Range
-              <span class="material-icons text-sm transition-transform" [class.rotate-180]="showPriceFilter">expand_more</span>
-            </button>
-            <div *ngIf="showPriceFilter" class="px-4 pb-3 flex flex-col gap-2">
-              <label
-                *ngFor="let range of priceRanges"
-                class="flex items-center gap-2 cursor-pointer text-sm text-gray-700 hover:text-maroon"
-              >
-                <input
-                  type="checkbox"
-                  [(ngModel)]="range.checked"
-                  (ngModelChange)="applyFilters()"
-                  class="w-4 h-4 accent-maroon rounded"
-                />
-                {{ range.label }}
-              </label>
-            </div>
-          </div>
-
-          <!-- Material Filter -->
-          <div class="border border-gray-200 rounded-lg mb-2 overflow-hidden">
-            <button
-              class="w-full flex items-center justify-between px-4 py-3 bg-white font-semibold text-maroon"
-              (click)="showMaterialFilter = !showMaterialFilter"
-            >
-              Material
-              <span class="material-icons text-sm transition-transform" [class.rotate-180]="showMaterialFilter">expand_more</span>
-            </button>
-            <div *ngIf="showMaterialFilter" class="px-4 pb-3 flex flex-col gap-2">
-              <label
-                *ngFor="let mat of materials"
-                class="flex items-center gap-2 cursor-pointer text-sm text-gray-700 hover:text-maroon"
-              >
-                <input
-                  type="checkbox"
-                  [checked]="selectedMaterials.has(mat)"
-                  (change)="toggleMaterial(mat)"
-                  class="w-4 h-4 accent-maroon rounded"
-                />
-                {{ mat }}
-              </label>
-            </div>
-          </div>
-
-          <button
-            class="w-full mt-3 py-2 border border-rose-gold text-rose-gold rounded-lg text-sm font-medium hover:bg-rose-gold hover:text-white transition-colors"
-            (click)="clearFilters()"
-          >
-            Clear All Filters
-          </button>
-        </aside>
-
-        <!-- Products Grid -->
-        <main>
-          <!-- Loading -->
-          <div *ngIf="loading" class="text-center py-16 text-gray-500">
-            <div class="inline-block w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p>Loading products...</p>
-          </div>
-
-          <!-- Empty State -->
-          <div *ngIf="!loading && filteredProducts.length === 0" class="text-center py-16">
-            <span class="material-icons text-6xl text-gray-300">search_off</span>
-            <h3 class="text-maroon mt-4 mb-2 text-lg font-semibold">No products found</h3>
-            <p class="text-gray-500 mb-4">Try adjusting your filters or search term</p>
-            <button
-              class="border border-maroon text-maroon px-6 py-2 rounded-lg font-medium hover:bg-maroon hover:text-cream transition-colors"
-              (click)="clearFilters()"
-            >
-              Clear Filters
-            </button>
-          </div>
-
-          <!-- Product Grid -->
-          <div *ngIf="!loading && filteredProducts.length > 0" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-            <app-product-card
-              *ngFor="let product of filteredProducts"
-              [product]="product"
-            ></app-product-card>
-          </div>
-        </main>
-      </div>
+          <h3 class="font-heading text-xl font-semibold text-gray-700 mb-2">No products found</h3>
+          <p class="text-sm text-gray-500">Try adjusting your search or filters</p>
+        </div>
+      } @else {
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+          @for (product of filteredProducts(); track product.id) {
+            <app-product-card [product]="product" />
+          }
+        </div>
+      }
     </div>
   `,
-  styles: [`
-    :host { display: block; }
-  `],
 })
 export class ShopComponent implements OnInit {
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
   private route = inject(ActivatedRoute);
+  private destroyRef = inject(DestroyRef);
 
-  allProducts: Product[] = [];
-  filteredProducts: Product[] = [];
-  categories: Category[] = [];
-  loading = true;
-  showFilters = false;
-  showCategoryFilter = true;
-  showPriceFilter = true;
-  showMaterialFilter = true;
+  allProducts = signal<Product[]>([]);
+  categories = signal<Category[]>([]);
+  loading = signal(true);
 
-  searchTerm = '';
+  searchQuery = '';
+  selectedCategory = '';
   sortBy = 'newest';
-  selectedCategories = new Set<string>();
-  selectedMaterials = new Set<string>();
 
-  priceRanges: PriceRange[] = [
-    { label: 'Under \u20B9500', min: 0, max: 500, checked: false },
-    { label: '\u20B9500 - \u20B91,000', min: 500, max: 1000, checked: false },
-    { label: '\u20B91,000 - \u20B92,000', min: 1000, max: 2000, checked: false },
-    { label: 'Above \u20B92,000', min: 2000, max: Infinity, checked: false },
-  ];
+  filteredProducts = computed(() => {
+    let products = [...this.allProducts()];
 
-  materials = ['Gold Plated', 'Silver', 'Artificial', 'Oxidized'];
-
-  ngOnInit(): void {
-    this.categoryService.getAll().subscribe(cats => {
-      this.categories = cats.filter(c => c.isActive);
-    });
-
-    this.route.paramMap.subscribe(params => {
-      const categoryId = params.get('category');
-      if (categoryId) {
-        this.selectedCategories.add(categoryId);
-      }
-    });
-
-    this.productService.getAll().subscribe(products => {
-      this.allProducts = products;
-      this.loading = false;
-      this.applyFilters();
-    });
-  }
-
-  toggleCategory(id: string): void {
-    if (this.selectedCategories.has(id)) {
-      this.selectedCategories.delete(id);
-    } else {
-      this.selectedCategories.add(id);
+    if (this.selectedCategory) {
+      products = products.filter((p) => p.categoryId === this.selectedCategory);
     }
-    this.applyFilters();
-  }
 
-  toggleMaterial(mat: string): void {
-    if (this.selectedMaterials.has(mat)) {
-      this.selectedMaterials.delete(mat);
-    } else {
-      this.selectedMaterials.add(mat);
-    }
-    this.applyFilters();
-  }
-
-  clearFilters(): void {
-    this.searchTerm = '';
-    this.sortBy = 'newest';
-    this.selectedCategories.clear();
-    this.selectedMaterials.clear();
-    this.priceRanges.forEach(r => (r.checked = false));
-    this.applyFilters();
-  }
-
-  applyFilters(): void {
-    let products = [...this.allProducts];
-
-    // Search
-    if (this.searchTerm.trim()) {
-      const term = this.searchTerm.toLowerCase();
+    if (this.searchQuery) {
+      const q = this.searchQuery.toLowerCase();
       products = products.filter(
-        p =>
-          p.nameEn.toLowerCase().includes(term) ||
-          p.nameHi.toLowerCase().includes(term) ||
-          p.description.toLowerCase().includes(term)
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q) ||
+          (p.tags || []).some((t) => t.toLowerCase().includes(q))
       );
     }
 
-    // Category filter
-    if (this.selectedCategories.size > 0) {
-      products = products.filter(p => this.selectedCategories.has(p.category));
-    }
-
-    // Material filter
-    if (this.selectedMaterials.size > 0) {
-      products = products.filter(p => this.selectedMaterials.has(p.material));
-    }
-
-    // Price range filter
-    const activeRanges = this.priceRanges.filter(r => r.checked);
-    if (activeRanges.length > 0) {
-      products = products.filter(p =>
-        activeRanges.some(r => p.price >= r.min && p.price < r.max)
-      );
-    }
-
-    // Sort
     switch (this.sortBy) {
       case 'price-asc':
         products.sort((a, b) => a.price - b.price);
@@ -304,14 +174,48 @@ export class ShopComponent implements OnInit {
         products.sort((a, b) => b.price - a.price);
         break;
       case 'newest':
-        products.sort((a, b) => {
-          const dateA = a.createdAt?.toMillis?.() || 0;
-          const dateB = b.createdAt?.toMillis?.() || 0;
-          return dateB - dateA;
-        });
+      default:
         break;
     }
 
-    this.filteredProducts = products;
+    return products;
+  });
+
+  ngOnInit(): void {
+    this.route.queryParams
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        if (params['category']) {
+          this.selectedCategory = params['category'];
+        }
+      });
+
+    this.productService.getProducts().subscribe((products) => {
+      this.allProducts.set(products);
+      this.loading.set(false);
+    });
+
+    this.categoryService.getActiveCategories().subscribe((cats) => {
+      this.categories.set(cats);
+    });
+  }
+
+  onSearch(query: string): void {
+    this.searchQuery = query;
+    this.applyFilters();
+  }
+
+  onCategoryChange(categoryId: string): void {
+    this.selectedCategory = categoryId;
+    this.applyFilters();
+  }
+
+  applyFilters(): void {
+    // Trigger computed re-evaluation by updating signal
+    this.allProducts.update((p) => [...p]);
+  }
+
+  getCategoryName(id: string): string {
+    return this.categories().find((c) => c.id === id)?.name || 'Category';
   }
 }

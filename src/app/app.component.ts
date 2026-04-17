@@ -1,27 +1,43 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { WhatsappFabComponent } from './shared/components/whatsapp-fab/whatsapp-fab.component';
+import { filter, map } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent, FooterComponent, WhatsappFabComponent],
+  imports: [CommonModule, RouterOutlet, NavbarComponent, FooterComponent, WhatsappFabComponent],
   template: `
-    <app-navbar></app-navbar>
-    <main>
+    @if (!isAdminRoute) {
+      <app-navbar />
+    }
+
+    <main class="min-h-screen">
       <router-outlet></router-outlet>
     </main>
-    <app-footer></app-footer>
-    <app-whatsapp-fab></app-whatsapp-fab>
-  `,
-  styles: [`
-    main {
-      min-height: calc(100vh - 140px);
+
+    @if (!isAdminRoute) {
+      <app-footer />
+      <app-whatsapp-fab />
     }
-  `]
+  `,
 })
 export class AppComponent {
   title = 'स्त्रीरत्न - Powered by Maaax';
+  isAdminRoute = false;
+
+  constructor(private router: Router) {
+    this.router.events
+      .pipe(
+        filter((e) => e instanceof NavigationEnd),
+        map((e) => (e as NavigationEnd).url)
+      )
+      .subscribe((url) => {
+        this.isAdminRoute = url.startsWith('/admin');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+  }
 }

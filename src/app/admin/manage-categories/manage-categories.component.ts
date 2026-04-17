@@ -1,303 +1,189 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 import { CategoryService } from '../../core/services/category.service';
-import { AuthService } from '../../core/services/auth.service';
 import { Category } from '../../core/models/category.model';
 
 @Component({
   selector: 'app-manage-categories',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule],
   template: `
-    <div class="flex min-h-screen bg-gray-100">
-      <!-- Sidebar -->
-      <aside class="w-64 bg-white border-r border-gray-200 fixed top-0 left-0 bottom-0 z-50 overflow-y-auto hidden md:block">
-        <div class="py-6 px-4 text-center">
-          <h2 class="text-2xl font-bold text-maroon">&#x0938;&#x094D;&#x0924;&#x094D;&#x0930;&#x0940;&#x0930;&#x0924;&#x094D;&#x0928;</h2>
-          <span class="text-xs text-gray-400">Admin Panel</span>
-        </div>
-        <hr class="border-gray-200" />
-        <nav class="mt-2">
-          <a routerLink="/admin/dashboard" routerLinkActive="bg-maroon/10 text-maroon"
-             class="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition">
-            <span class="material-icons text-xl">dashboard</span>
-            <span class="text-sm font-medium">Dashboard</span>
-          </a>
-          <a routerLink="/admin/orders" routerLinkActive="bg-maroon/10 text-maroon"
-             class="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition">
-            <span class="material-icons text-xl">receipt_long</span>
-            <span class="text-sm font-medium">Orders</span>
-          </a>
-          <a routerLink="/admin/products" routerLinkActive="bg-maroon/10 text-maroon"
-             class="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition">
-            <span class="material-icons text-xl">inventory_2</span>
-            <span class="text-sm font-medium">Products</span>
-          </a>
-          <a routerLink="/admin/categories" routerLinkActive="bg-maroon/10 text-maroon"
-             class="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition">
-            <span class="material-icons text-xl">category</span>
-            <span class="text-sm font-medium">Categories</span>
-          </a>
-          <hr class="border-gray-200 my-2" />
-          <a routerLink="/" class="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition">
-            <span class="material-icons text-xl">storefront</span>
-            <span class="text-sm font-medium">View Shop</span>
-          </a>
-          <button (click)="onLogout()"
-                  class="flex items-center gap-3 px-5 py-3 text-red-600 hover:bg-red-50 transition w-full text-left">
-            <span class="material-icons text-xl">logout</span>
-            <span class="text-sm font-medium">Logout</span>
-          </button>
-        </nav>
-      </aside>
+    <div class="space-y-6">
+      <div class="flex items-center justify-between">
+        <h2 class="font-heading text-xl font-bold text-gray-900">Categories</h2>
+        <button (click)="showForm.set(!showForm())"
+          class="px-5 py-2.5 bg-maroon text-white text-sm font-semibold rounded-full
+                 hover:bg-maroon-dark transition-colors">
+          {{ showForm() ? 'Cancel' : '+ Add Category' }}
+        </button>
+      </div>
 
-      <!-- Main Content -->
-      <main class="flex-1 md:ml-64 p-6">
-        <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
-          <h1 class="text-2xl font-bold text-gray-800">Manage Categories</h1>
-          <button (click)="openForm()"
-                  class="inline-flex items-center gap-2 bg-maroon hover:bg-maroon-dark text-white px-4 py-2.5 rounded-lg font-medium transition text-sm">
-            <span class="material-icons text-lg">add</span> Add Category
-          </button>
-        </div>
-
-        <!-- Categories Table -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Name (English)</th>
-                  <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Name (Hindi)</th>
-                  <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Image</th>
-                  <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Order</th>
-                  <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Active</th>
-                  <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                <tr *ngFor="let cat of categories" class="hover:bg-gray-50 transition">
-                  <td class="px-4 py-3 font-medium text-gray-800">{{ cat.nameEn }}</td>
-                  <td class="px-4 py-3 text-gray-600">{{ cat.nameHi }}</td>
-                  <td class="px-4 py-3">
-                    <img [src]="cat.image || 'https://via.placeholder.com/50'"
-                         class="w-12 h-12 object-cover rounded-md border border-gray-200"
-                         [alt]="cat.nameEn"
-                         onerror="this.src='https://via.placeholder.com/50'" />
-                  </td>
-                  <td class="px-4 py-3 text-gray-600">{{ cat.order }}</td>
-                  <td class="px-4 py-3">
-                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold"
-                          [ngClass]="cat.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'">
-                      {{ cat.isActive ? 'Active' : 'Inactive' }}
-                    </span>
-                  </td>
-                  <td class="px-4 py-3">
-                    <div class="flex items-center gap-1">
-                      <button (click)="editCategory(cat)" title="Edit"
-                              class="text-blue-600 hover:text-blue-800 transition p-1">
-                        <span class="material-icons text-xl">edit</span>
-                      </button>
-                      <button (click)="confirmDelete(cat)" title="Delete"
-                              class="text-red-500 hover:text-red-700 transition p-1">
-                        <span class="material-icons text-xl">delete</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div *ngIf="categories.length === 0" class="py-10 text-center text-gray-400">
-            No categories yet. Click "Add Category" to create one.
-          </div>
-        </div>
-
-        <!-- Add/Edit Category Modal -->
-        <div *ngIf="showForm" class="fixed inset-0 bg-black/50 z-[1000] flex justify-center items-start pt-16 overflow-y-auto"
-             (click)="showForm = false">
-          <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto mx-4"
-               (click)="$event.stopPropagation()">
-            <!-- Header -->
-            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 class="text-lg font-bold text-maroon">{{ isEditing ? 'Edit Category' : 'Add New Category' }}</h2>
-              <button (click)="showForm = false" class="text-gray-400 hover:text-gray-600">
-                <span class="material-icons">close</span>
-              </button>
+      <!-- Form -->
+      @if (showForm()) {
+        <div class="bg-white rounded-2xl p-6 shadow-sm space-y-4">
+          <h3 class="font-heading text-lg font-semibold">
+            {{ editingId() ? 'Edit Category' : 'Add New Category' }}
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+              <input type="text" [(ngModel)]="form.name"
+                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gold/50" />
             </div>
-            <!-- Form -->
-            <div class="p-5">
-              <form (ngSubmit)="saveCategory()" class="space-y-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Name (English)</label>
-                  <input type="text" [(ngModel)]="formData.nameEn" name="nameEn" required
-                         class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-maroon" />
-                </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Name (Marathi)</label>
+              <input type="text" [(ngModel)]="form.nameMarathi"
+                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+              <input type="text" [(ngModel)]="form.image"
+                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
+              <input type="number" [(ngModel)]="form.order"
+                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea [(ngModel)]="form.description" rows="2"
+                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm resize-none
+                       focus:outline-none focus:ring-2 focus:ring-gold/50"></textarea>
+            </div>
+          </div>
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" [(ngModel)]="form.active" class="rounded" />
+            Active
+          </label>
+          <div class="flex gap-3">
+            <button (click)="saveCategory()"
+              class="px-6 py-2.5 bg-maroon text-white text-sm font-semibold rounded-full
+                     hover:bg-maroon-dark transition-colors">
+              {{ editingId() ? 'Update' : 'Save' }}
+            </button>
+            <button (click)="resetForm()"
+              class="px-6 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-full
+                     hover:bg-gray-200 transition-colors">
+              Reset
+            </button>
+          </div>
+        </div>
+      }
 
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Name (Hindi)</label>
-                  <input type="text" [(ngModel)]="formData.nameHi" name="nameHi" required
-                         class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-maroon" />
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                  <div class="relative">
-                    <input type="text" [(ngModel)]="formData.image" name="image"
-                           placeholder="https://example.com/image.jpg"
-                           class="w-full px-3 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-maroon" />
-                    <span class="material-icons absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">image</span>
+      <!-- Categories Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (category of categories(); track category.id) {
+          <div class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                @if (category.image) {
+                  <img [src]="category.image" class="w-12 h-12 rounded-xl object-cover" />
+                } @else {
+                  <div class="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center">
+                    <span class="font-heading text-lg text-gold">{{ category.name.charAt(0) }}</span>
                   </div>
-                </div>
-
+                }
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
-                  <input type="number" [(ngModel)]="formData.order" name="order"
-                         class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-maroon" />
+                  <h3 class="text-sm font-semibold text-gray-900">{{ category.name }}</h3>
+                  @if (category.nameMarathi) {
+                    <p class="text-xs text-gray-500">{{ category.nameMarathi }}</p>
+                  }
                 </div>
-
-                <!-- Active toggle -->
-                <div class="py-2">
-                  <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" [(ngModel)]="formData.isActive" name="isActive"
-                           class="w-4 h-4 text-maroon border-gray-300 rounded focus:ring-maroon" />
-                    <span class="text-sm font-medium text-gray-700">Active</span>
-                  </label>
-                </div>
-
-                <!-- Actions -->
-                <div class="flex justify-end gap-3 pt-2">
-                  <button type="button" (click)="showForm = false"
-                          class="px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
-                    Cancel
-                  </button>
-                  <button type="submit"
-                          class="px-5 py-2.5 bg-maroon hover:bg-maroon-dark text-white rounded-lg text-sm font-medium transition">
-                    {{ isEditing ? 'Update Category' : 'Add Category' }}
-                  </button>
-                </div>
-              </form>
+              </div>
+              <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full"
+                    [class]="category.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'">
+                {{ category.active ? 'Active' : 'Hidden' }}
+              </span>
+            </div>
+            @if (category.description) {
+              <p class="text-xs text-gray-500 mt-3">{{ category.description }}</p>
+            }
+            <div class="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100">
+              <button (click)="editCategory(category)"
+                class="text-xs text-maroon hover:underline">Edit</button>
+              <span class="text-gray-300">|</span>
+              <button (click)="deleteCategory(category.id)"
+                class="text-xs text-red-500 hover:underline">Delete</button>
             </div>
           </div>
-        </div>
+        }
+      </div>
 
-        <!-- Delete Confirmation Modal -->
-        <div *ngIf="categoryToDelete" class="fixed inset-0 bg-black/50 z-[1000] flex justify-center items-start pt-32"
-             (click)="categoryToDelete = null">
-          <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 mx-4"
-               (click)="$event.stopPropagation()">
-            <h2 class="text-lg font-bold text-red-600 mb-3">Delete Category</h2>
-            <p class="text-gray-600 mb-5">Are you sure you want to delete <strong>"{{ categoryToDelete.nameEn }}"</strong>? This action cannot be undone.</p>
-            <div class="flex justify-end gap-3">
-              <button (click)="categoryToDelete = null"
-                      class="px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
-                Cancel
-              </button>
-              <button (click)="deleteCategory()"
-                      class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition">
-                Delete
-              </button>
-            </div>
-          </div>
+      @if (categories().length === 0) {
+        <div class="text-center py-12 text-gray-500 text-sm">
+          No categories yet. Add your first category!
         </div>
-      </main>
+      }
     </div>
   `,
-  styles: [],
 })
-export class ManageCategoriesComponent implements OnInit, OnDestroy {
+export class ManageCategoriesComponent implements OnInit {
   private categoryService = inject(CategoryService);
-  private authService = inject(AuthService);
-  private router = inject(Router);
 
-  categories: Category[] = [];
-  showForm = false;
-  isEditing = false;
-  editingCategoryId: string | null = null;
-  categoryToDelete: Category | null = null;
+  categories = signal<Category[]>([]);
+  showForm = signal(false);
+  editingId = signal<string | null>(null);
 
-  formData = {
-    nameEn: '',
-    nameHi: '',
+  form = {
+    name: '',
+    nameMarathi: '',
+    description: '',
     image: '',
     order: 0,
-    isActive: true,
+    active: true,
   };
 
-  private subscription?: Subscription;
-
   ngOnInit(): void {
-    this.subscription = this.categoryService.getAll().subscribe(categories => {
-      this.categories = categories.sort((a, b) => a.order - b.order);
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.subscription?.unsubscribe();
-  }
-
-  openForm(): void {
-    this.isEditing = false;
-    this.editingCategoryId = null;
-    this.formData = { nameEn: '', nameHi: '', image: '', order: 0, isActive: true };
-    this.showForm = true;
-  }
-
-  editCategory(cat: Category): void {
-    this.isEditing = true;
-    this.editingCategoryId = cat.id || null;
-    this.formData = {
-      nameEn: cat.nameEn,
-      nameHi: cat.nameHi,
-      image: cat.image,
-      order: cat.order,
-      isActive: cat.isActive,
-    };
-    this.showForm = true;
+    this.categoryService.getCategories().subscribe((c) => this.categories.set(c));
   }
 
   async saveCategory(): Promise<void> {
-    const categoryData: Category = {
-      nameEn: this.formData.nameEn,
-      nameHi: this.formData.nameHi,
-      image: this.formData.image,
-      order: this.formData.order,
-      isActive: this.formData.isActive,
+    const data: any = {
+      name: this.form.name,
+      nameMarathi: this.form.nameMarathi || undefined,
+      description: this.form.description || undefined,
+      image: this.form.image || undefined,
+      order: this.form.order,
+      active: this.form.active,
     };
 
-    try {
-      if (this.isEditing && this.editingCategoryId) {
-        await this.categoryService.update(this.editingCategoryId, categoryData);
-      } else {
-        await this.categoryService.add(categoryData);
-      }
-      this.showForm = false;
-    } catch (err) {
-      console.error('Error saving category:', err);
+    if (this.editingId()) {
+      await this.categoryService.updateCategory(this.editingId()!, data);
+    } else {
+      await this.categoryService.addCategory(data);
+    }
+
+    this.resetForm();
+    this.showForm.set(false);
+  }
+
+  editCategory(category: Category): void {
+    this.editingId.set(category.id);
+    this.form = {
+      name: category.name,
+      nameMarathi: category.nameMarathi || '',
+      description: category.description || '',
+      image: category.image || '',
+      order: category.order,
+      active: category.active,
+    };
+    this.showForm.set(true);
+  }
+
+  async deleteCategory(id: string): Promise<void> {
+    if (confirm('Are you sure you want to delete this category?')) {
+      await this.categoryService.deleteCategory(id);
     }
   }
 
-  confirmDelete(cat: Category): void {
-    this.categoryToDelete = cat;
-  }
-
-  async deleteCategory(): Promise<void> {
-    if (this.categoryToDelete?.id) {
-      try {
-        await this.categoryService.delete(this.categoryToDelete.id);
-      } catch (err) {
-        console.error('Error deleting category:', err);
-      }
-    }
-    this.categoryToDelete = null;
-  }
-
-  async onLogout(): Promise<void> {
-    await this.authService.logout();
-    this.router.navigate(['/admin/login']);
+  resetForm(): void {
+    this.editingId.set(null);
+    this.form = { name: '', nameMarathi: '', description: '', image: '', order: 0, active: true };
   }
 }

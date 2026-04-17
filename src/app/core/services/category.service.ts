@@ -1,41 +1,91 @@
 import { Injectable, inject } from '@angular/core';
-import {
-  Firestore,
-  collection,
-  collectionData,
-  doc,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  orderBy
-} from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { SupabaseService } from './supabase.service';
+import { Observable, from, map } from 'rxjs';
 import { Category } from '../models/category.model';
 
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
-  private firestore = inject(Firestore);
-  private collectionName = 'categories';
+  private supabase = inject(SupabaseService).client;
 
-  getAll(): Observable<Category[]> {
-    const ref = collection(this.firestore, this.collectionName);
-    const q = query(ref, orderBy('order', 'asc'));
-    return collectionData(q, { idField: 'id' }) as Observable<Category[]>;
+  getCategories(): Observable<Category[]> {
+    return from(
+      this.supabase
+        .from('categories')
+        .select('*')
+        .order('display_order', { ascending: true })
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return (data || []).map(this.mapCategory);
+      })
+    );
   }
 
-  add(category: Category) {
-    const ref = collection(this.firestore, this.collectionName);
-    return addDoc(ref, { ...category });
+  getActiveCategories(): Observable<Category[]> {
+    return from(
+      this.supabase
+        .from('categories')
+        .select('*')
+        .eq('active', true)
+        .order('display_order', { ascending: true })
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return (data || []).map(this.mapCategory);
+      })
+    );
   }
 
-  update(id: string, category: Partial<Category>) {
-    const ref = doc(this.firestore, this.collectionName, id);
-    return updateDoc(ref, { ...category });
+  async addCategory(category: Omit<Category, 'id'>): Promise<string> {
+    const { data, error } = await this.supabase
+      .from('categories')
+      .insert({
+        name: category.name,
+        name_marathi: category.nameMarathi,
+        description: category.description,
+        image: category.image,
+        display_order: category.order,
+        active: category.active,
+      })
+      .select('id')
+      .single();
+    if (error) throw error;
+    return data.id;
   }
 
-  delete(id: string) {
-    const ref = doc(this.firestore, this.collectionName, id);
-    return deleteDoc(ref);
+  async updateCategory(id: string, category: Partial<Category>): Promise<void> {
+    const updateData: any = {};
+    if (category.name !== undefined) updateData.name = category.name;
+    if (category.nameMarathi !== undefined) updateData.name_marathi = category.nameMarathi;
+    if (category.description !== undefined) updateData.description = category.description;
+    if (category.image !== undefined) updateData.image = category.image;
+    if (category.order !== undefined) updateData.display_order = category.order;
+    if (category.active !== undefined) updateData.active = category.active;
+
+    const { error } = await this.supabase
+      .from('categories')
+      .update(updateData)
+      .eq('id', id);
+    if (error) throw error;
+  }
+
+  async deleteCategory(id: string): Promise<void> {
+    const { error } = await this.supabase
+      .from('categories')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  }
+
+  private mapCategory(row: any): Category {
+    return {
+      id: row.id,
+      name: row.name,
+      nameMarathi: row.name_marathi,
+      description: row.description,
+      image: row.image,
+      order: row.display_order,
+      active: row.active,
+    };
   }
 }

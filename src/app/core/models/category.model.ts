@@ -1,8 +1,10 @@
 export interface Category {
-  id?: string;
-  nameEn: string;
-  nameHi: string;
-  image: string;
+  id: string;
+  name: string;
+  nameMarathi?: string;
+  description?: string;
+  image?: string;
   order: number;
-  isActive: boolean;
+  active: boolean;
+  productCount?: number;
 }

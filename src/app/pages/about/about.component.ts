@@ -1,132 +1,127 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [RouterLink],
   template: `
     <!-- Hero -->
-    <section
-      class="w-full min-h-[40vh] bg-maroon bg-cover bg-center relative"
-      style="background-image: url('/assets/images/about-bg.jpg');"
-    >
-      <div
-        class="min-h-[40vh] flex flex-col items-center justify-center text-cream text-center p-8"
-        style="background: linear-gradient(135deg, rgba(128,0,32,0.85), rgba(183,110,121,0.7));"
-      >
-        <h1 class="text-4xl md:text-5xl font-bold mb-2" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.3);">
-          &#x0938;&#x094D;&#x0924;&#x094D;&#x0930;&#x0940;&#x0930;&#x0924;&#x094D;&#x0928;
+    <section class="bg-gradient-to-br from-maroon to-maroon-dark text-white py-16 lg:py-24">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <p class="text-sm font-semibold text-gold uppercase tracking-wider mb-4">Our Story</p>
+        <h1 class="font-heading text-3xl lg:text-5xl font-bold mb-6">
+          About <span class="text-gold">स्त्रीरत्न</span>
         </h1>
-        <p class="text-sm tracking-[3px] uppercase opacity-90">Powered by Maaax</p>
-      </div>
-    </section>
-
-    <!-- Brand Story -->
-    <section class="py-12 px-4 md:px-6 max-w-[1000px] mx-auto">
-      <h2 class="text-center text-2xl md:text-3xl font-bold text-maroon mb-2">Our Story</h2>
-      <div class="w-[60px] h-[3px] bg-gold mx-auto mb-6"></div>
-      <div class="max-w-[700px] mx-auto leading-relaxed text-gray-600 space-y-4">
-        <p>
-          <strong class="text-maroon">&#x0938;&#x094D;&#x0924;&#x094D;&#x0930;&#x0940;&#x0930;&#x0924;&#x094D;&#x0928;</strong> was born from a simple belief:
-          every woman deserves to feel beautiful without breaking the bank. Our name, meaning
-          <em class="text-rose-gold">"Jewel of Women"</em>, reflects our commitment to celebrating the innate beauty
-          and strength of women through exquisite, affordable jewelry.
-        </p>
-        <p>
-          What started as a small passion project has grown into a trusted brand loved by
-          thousands of women across India. We carefully curate each piece, ensuring it meets
-          our high standards of quality, design, and affordability.
-        </p>
-        <p>
-          From traditional Maharashtrian designs to modern contemporary pieces, our collection
-          is as diverse as the women who wear them. Every order is packaged with love and care,
-          delivered right to your doorstep.
+        <p class="text-lg text-white/80 leading-relaxed">
+          From humble beginnings on Instagram to building Maharashtra's most loved art jewellery brand.
         </p>
       </div>
     </section>
 
-    <!-- Mission -->
-    <section class="mx-4 md:mx-6 max-w-[1000px] lg:mx-auto">
-      <div class="bg-cream rounded-2xl text-center py-12 px-8">
-        <span class="material-icons text-gold text-5xl">auto_awesome</span>
-        <h2 class="text-maroon text-2xl font-bold mt-4 mb-2">Our Mission</h2>
-        <p class="text-gray-600 text-lg">Making premium jewelry accessible to every woman</p>
-      </div>
-    </section>
+    <!-- Story -->
+    <section class="py-16 lg:py-20">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="space-y-12">
+          <!-- The Problem -->
+          <div class="bg-white rounded-2xl p-8 shadow-sm">
+            <h2 class="font-heading text-2xl font-bold text-maroon mb-4">The Challenge</h2>
+            <p class="text-gray-600 leading-relaxed mb-4">
+              It all started on Instagram. What began as a small page sharing beautiful jewellery designs
+              quickly grew into something we never imagined. Within months, we were receiving
+              <span class="font-semibold text-maroon">1000+ messages every single day</span>.
+            </p>
+            <div class="bg-cream rounded-xl p-6 border-l-4 border-gold">
+              <p class="text-gray-700 italic">
+                "Amruta, have you read the comments?"<br>
+                "There are 1000+ messages pending."<br>
+                "We are packing orders but can't reply."<br>
+                "Please understand, we will reply to everyone."
+              </p>
+              <p class="text-sm text-gold font-semibold mt-3">- Actual conversation from our team</p>
+            </div>
+            <p class="text-gray-600 leading-relaxed mt-4">
+              Our small team was overwhelmed. We were losing orders because we couldn't reply fast enough.
+              Customers had simple questions - Price? Designs? Delivery? How to order? - but we just
+              couldn't keep up.
+            </p>
+          </div>
 
-    <!-- Values -->
-    <section class="py-12 px-4 md:px-6 max-w-[1000px] mx-auto">
-      <h2 class="text-center text-2xl md:text-3xl font-bold text-maroon mb-2">Our Values</h2>
-      <div class="w-[60px] h-[3px] bg-gold mx-auto mb-8"></div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div
-          class="text-center py-8 px-4 bg-white rounded-xl shadow-md border-t-4 border-gold"
-          *ngFor="let value of values"
-        >
-          <span class="material-icons text-gold text-4xl">{{ value.icon }}</span>
-          <h3 class="text-maroon font-semibold mt-3 mb-2">{{ value.title }}</h3>
-          <p class="text-gray-500 text-sm">{{ value.desc }}</p>
+          <!-- The Solution -->
+          <div class="bg-white rounded-2xl p-8 shadow-sm">
+            <h2 class="font-heading text-2xl font-bold text-maroon mb-4">The Solution</h2>
+            <p class="text-gray-600 leading-relaxed mb-4">
+              That's when we decided to build this platform. Not just a website - but a complete shopping
+              experience where you can:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              @for (feature of features; track feature.title) {
+                <div class="flex items-start gap-3 p-4 bg-cream rounded-xl">
+                  <div class="w-10 h-10 bg-gold/20 rounded-full flex items-center justify-center shrink-0">
+                    <span class="text-gold text-lg">{{ feature.icon }}</span>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-semibold text-gray-900">{{ feature.title }}</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ feature.desc }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Values -->
+          <div class="bg-white rounded-2xl p-8 shadow-sm">
+            <h2 class="font-heading text-2xl font-bold text-maroon mb-6">What We Stand For</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="text-center">
+                <div class="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-gold/20 to-gold/5 rounded-full
+                            flex items-center justify-center">
+                  <span class="font-heading text-2xl text-gold">1gm</span>
+                </div>
+                <h3 class="font-heading text-lg font-semibold text-gray-900">Lightweight Luxury</h3>
+                <p class="text-sm text-gray-500 mt-1">1gm gold-look jewellery that's comfortable to wear all day</p>
+              </div>
+              <div class="text-center">
+                <div class="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-maroon/20 to-maroon/5 rounded-full
+                            flex items-center justify-center">
+                  <span class="font-heading text-2xl text-maroon">M</span>
+                </div>
+                <h3 class="font-heading text-lg font-semibold text-gray-900">Maharashtra Heritage</h3>
+                <p class="text-sm text-gray-500 mt-1">Designs inspired by rich Maharashtrian traditions</p>
+              </div>
+              <div class="text-center">
+                <div class="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-green-500/20 to-green-500/5 rounded-full
+                            flex items-center justify-center">
+                  <span class="text-2xl">&#10084;</span>
+                </div>
+                <h3 class="font-heading text-lg font-semibold text-gray-900">Affordable Price</h3>
+                <p class="text-sm text-gray-500 mt-1">Premium looks without breaking the bank</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- CTA -->
+          <div class="text-center">
+            <a routerLink="/shop"
+               class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-maroon to-maroon-dark
+                      text-white font-semibold rounded-full shadow-lg shadow-maroon/25
+                      hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+              Explore Our Collection
+              <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </a>
+          </div>
         </div>
       </div>
-    </section>
-
-    <!-- Stats -->
-    <section
-      class="mx-4 md:mx-6 max-w-[1000px] lg:mx-auto rounded-2xl py-12 px-6"
-      style="background: linear-gradient(135deg, #800020, #B76E79);"
-    >
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center text-cream">
-        <div *ngFor="let stat of stats">
-          <h3 class="text-2xl md:text-3xl font-bold text-gold mb-1">{{ stat.number }}</h3>
-          <p class="text-sm opacity-90">{{ stat.label }}</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Instagram CTA -->
-    <section class="py-12 px-4 text-center max-w-[1000px] mx-auto">
-      <span class="material-icons text-rose-gold text-5xl">camera_alt</span>
-      <h2 class="text-maroon text-2xl font-bold mt-3 mb-2">Follow Our Journey</h2>
-      <p class="text-gray-500 mb-6">See our latest designs, styling tips, and customer looks on Instagram</p>
-      <a
-        href="https://www.instagram.com/striratna"
-        target="_blank"
-        class="inline-block text-white font-semibold px-8 py-3 rounded-full hover:opacity-90 transition-opacity"
-        style="background: linear-gradient(135deg, #833AB4, #E1306C, #F77737);"
-      >
-        Follow &#64;striratna
-      </a>
     </section>
   `,
-  styles: [`
-    :host { display: block; }
-  `],
 })
 export class AboutComponent {
-  values = [
-    {
-      icon: 'diamond',
-      title: 'Quality',
-      desc: 'Every piece undergoes strict quality checks. We use only premium materials that last.',
-    },
-    {
-      icon: 'handshake',
-      title: 'Trust',
-      desc: 'Transparent pricing, honest descriptions, and genuine customer service you can rely on.',
-    },
-    {
-      icon: 'savings',
-      title: 'Affordability',
-      desc: 'Premium designs at prices that make jewelry accessible to every woman in India.',
-    },
-  ];
-
-  stats = [
-    { number: '5,000+', label: 'Happy Customers' },
-    { number: '500+', label: 'Unique Designs' },
-    { number: '50+', label: 'Categories' },
-    { number: '4.8/5', label: 'Customer Rating' },
+  features = [
+    { icon: '🔍', title: 'Browse Anytime', desc: 'No waiting for replies, explore at your pace' },
+    { icon: '💰', title: 'See Prices Instantly', desc: 'All prices clearly displayed' },
+    { icon: '🛒', title: 'Order in Seconds', desc: 'Add to cart and checkout seamlessly' },
+    { icon: '📱', title: 'WhatsApp Confirmation', desc: 'Order confirmation directly on WhatsApp' },
   ];
 }

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CartService } from '../../../core/services/cart.service';
@@ -6,133 +6,118 @@ import { CartService } from '../../../core/services/cart.service';
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    RouterLinkActive,
-  ],
+  imports: [CommonModule, RouterLink, RouterLinkActive],
   template: `
-    <nav class="fixed top-0 left-0 right-0 z-[1000] bg-gradient-to-br from-maroon to-maroon-dark transition-shadow duration-300"
-         [class.shadow-2xl]="scrolled()"
-         [class.shadow-md]="!scrolled()">
-      <div class="max-w-[1200px] mx-auto flex items-center justify-between px-6 h-16">
-        <!-- Brand -->
-        <a routerLink="/" class="no-underline flex items-center gap-2">
-          <span class="font-['Playfair_Display',serif] text-[1.6rem] font-bold text-gold tracking-wide">स्त्रीरत्न</span>
-        </a>
-
-        <!-- Desktop Navigation -->
-        <ul class="hidden md:flex list-none gap-8 m-0 p-0">
-          @for (link of navLinks; track link.path) {
-            <li>
-              <a [routerLink]="link.path"
-                 routerLinkActive="!text-gold after:!w-full"
-                 [routerLinkActiveOptions]="{ exact: link.path === '/' }"
-                 class="nav-link-underline no-underline text-cream font-['Playfair_Display',serif] text-base font-medium relative py-1 transition-colors duration-300 hover:text-gold">
-                {{ link.label }}
-              </a>
-            </li>
-          }
-        </ul>
-
-        <div class="flex items-center gap-3">
-          <!-- Cart -->
-          <a routerLink="/cart" class="relative text-gold no-underline flex items-center cursor-pointer transition-transform duration-200 hover:scale-110" aria-label="Cart">
-            <span class="material-icons text-[28px]">shopping_cart</span>
-            <ng-container *ngIf="(cartService.cartCount$ | async) as count">
-              <span *ngIf="count > 0" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                {{ count }}
-              </span>
-            </ng-container>
+    <nav
+      class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+      [class]="scrolled() ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-transparent'"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16 lg:h-20">
+          <!-- Logo -->
+          <a routerLink="/" class="flex items-center gap-2 group">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center">
+              <span class="text-white font-heading font-bold text-lg">स्त्री</span>
+            </div>
+            <div class="hidden sm:block">
+              <h1 class="font-heading text-xl font-bold text-maroon group-hover:text-gold-dark transition-colors">
+                स्त्रीरत्न
+              </h1>
+              <p class="text-[10px] text-gray-500 -mt-1 tracking-wider">POWERED BY MAAAX</p>
+            </div>
           </a>
 
-          <!-- Mobile Hamburger -->
-          <button class="md:hidden flex bg-transparent border-none cursor-pointer text-gold p-1" (click)="toggleMenu()" aria-label="Menu">
-            <span class="material-icons text-[28px]">{{ menuOpen() ? 'close' : 'menu' }}</span>
-          </button>
+          <!-- Desktop Nav -->
+          <div class="hidden lg:flex items-center gap-8">
+            @for (link of navLinks; track link.path) {
+              <a
+                [routerLink]="link.path"
+                routerLinkActive="text-gold font-semibold"
+                [routerLinkActiveOptions]="{ exact: link.path === '/' }"
+                class="text-sm font-medium text-gray-700 hover:text-gold transition-colors relative
+                       after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5
+                       after:bg-gold after:transition-all hover:after:w-full"
+              >
+                {{ link.label }}
+              </a>
+            }
+          </div>
+
+          <!-- Right Actions -->
+          <div class="flex items-center gap-3">
+            <!-- Cart -->
+            <a
+              routerLink="/cart"
+              class="relative p-2 rounded-full hover:bg-gold/10 transition-colors"
+            >
+              <svg class="w-6 h-6 text-maroon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              @if (cartService.itemCount() > 0) {
+                <span class="absolute -top-1 -right-1 w-5 h-5 bg-gold text-white text-xs font-bold
+                             rounded-full flex items-center justify-center animate-[scaleIn_0.3s_ease-out]">
+                  {{ cartService.itemCount() }}
+                </span>
+              }
+            </a>
+
+            <!-- Mobile Menu Toggle -->
+            <button
+              (click)="mobileOpen.set(!mobileOpen())"
+              class="lg:hidden p-2 rounded-full hover:bg-gold/10 transition-colors"
+            >
+              <svg class="w-6 h-6 text-maroon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                @if (mobileOpen()) {
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                } @else {
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                }
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Mobile Overlay -->
-      @if (menuOpen()) {
-        <div class="md:hidden fixed inset-0 bg-black/50 z-[1001]" (click)="toggleMenu()"></div>
-      }
-
-      <!-- Mobile Slide-in Menu -->
-      <div class="md:block hidden-until-mobile fixed top-0 right-0 w-[280px] h-screen bg-gradient-to-b from-maroon to-maroon-dark z-[1002] transition-transform duration-300 p-8 shadow-[-4px_0_16px_rgba(0,0,0,0.3)]"
-           [class.translate-x-0]="menuOpen()"
-           [class.translate-x-full]="!menuOpen()">
-        <div class="font-['Playfair_Display',serif] text-2xl font-bold text-gold mb-8 pb-4 border-b border-gold/30">स्त्रीरत्न</div>
-        <ul class="list-none p-0 m-0 flex flex-col gap-2">
-          @for (link of navLinks; track link.path) {
-            <li>
-              <a [routerLink]="link.path"
-                 routerLinkActive="bg-gold/15 text-gold"
-                 [routerLinkActiveOptions]="{ exact: link.path === '/' }"
-                 class="no-underline text-cream font-['Playfair_Display',serif] text-lg py-3 px-4 rounded-lg transition-all duration-200 block hover:bg-gold/15 hover:text-gold"
-                 (click)="toggleMenu()">
+      <!-- Mobile Menu -->
+      @if (mobileOpen()) {
+        <div class="lg:hidden bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-xl">
+          <div class="px-4 py-4 space-y-1">
+            @for (link of navLinks; track link.path) {
+              <a
+                [routerLink]="link.path"
+                routerLinkActive="bg-gold/10 text-gold"
+                [routerLinkActiveOptions]="{ exact: link.path === '/' }"
+                (click)="mobileOpen.set(false)"
+                class="block px-4 py-3 rounded-xl text-sm font-medium text-gray-700
+                       hover:bg-gold/10 hover:text-gold transition-all"
+              >
                 {{ link.label }}
               </a>
-            </li>
-          }
-          <li>
-            <a routerLink="/cart" class="no-underline text-cream font-['Playfair_Display',serif] text-lg py-3 px-4 rounded-lg transition-all duration-200 block hover:bg-gold/15 hover:text-gold" (click)="toggleMenu()">
-              Cart ({{ cartService.cartCount$ | async }})
-            </a>
-          </li>
-        </ul>
-      </div>
-    </nav>
-    <!-- Spacer to prevent content from hiding behind fixed navbar -->
-    <div class="h-16"></div>
-  `,
-  styles: [`
-    .nav-link-underline::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      width: 0;
-      height: 2px;
-      background: #D4AF37;
-      transition: width 0.3s ease;
-    }
-    .nav-link-underline:hover::after {
-      width: 100%;
-    }
-
-    /* Mobile menu: hidden on desktop, shown as block on mobile for slide transition */
-    .hidden-until-mobile {
-      display: none;
-    }
-    @media (max-width: 767px) {
-      .hidden-until-mobile {
-        display: block;
+            }
+          </div>
+        </div>
       }
-    }
-  `],
+    </nav>
+
+    <!-- Spacer -->
+    <div class="h-16 lg:h-20"></div>
+  `,
 })
 export class NavbarComponent {
-  readonly cartService = inject(CartService);
-  readonly menuOpen = signal(false);
-  readonly scrolled = signal(false);
+  cartService = inject(CartService);
+  mobileOpen = signal(false);
+  scrolled = signal(false);
 
-  readonly navLinks = [
-    { label: 'Home', path: '/' },
-    { label: 'Shop', path: '/shop' },
-    { label: 'About', path: '/about' },
-    { label: 'Contact', path: '/contact' },
+  navLinks = [
+    { path: '/', label: 'Home' },
+    { path: '/shop', label: 'Shop' },
+    { path: '/about', label: 'About' },
+    { path: '/contact', label: 'Contact' },
   ];
 
-  constructor() {
-    if (typeof window !== 'undefined') {
-      window.addEventListener('scroll', () => {
-        this.scrolled.set(window.scrollY > 20);
-      });
-    }
-  }
-
-  toggleMenu(): void {
-    this.menuOpen.update(v => !v);
+  @HostListener('window:scroll')
+  onScroll() {
+    this.scrolled.set(window.scrollY > 20);
   }
 }

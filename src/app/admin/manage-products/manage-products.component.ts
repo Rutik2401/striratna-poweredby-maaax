@@ -1,11 +1,8 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 import { ProductService } from '../../core/services/product.service';
 import { CategoryService } from '../../core/services/category.service';
-import { AuthService } from '../../core/services/auth.service';
 import { Product } from '../../core/models/product.model';
 import { Category } from '../../core/models/category.model';
 import { CurrencyInrPipe } from '../../shared/pipes/currency-inr.pipe';
@@ -13,384 +10,293 @@ import { CurrencyInrPipe } from '../../shared/pipes/currency-inr.pipe';
 @Component({
   selector: 'app-manage-products',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, CurrencyInrPipe],
+  imports: [CommonModule, FormsModule, CurrencyInrPipe],
   template: `
-    <div class="flex min-h-screen bg-gray-100">
-      <!-- Sidebar -->
-      <aside class="w-64 bg-white border-r border-gray-200 fixed top-0 left-0 bottom-0 z-50 overflow-y-auto hidden md:block">
-        <div class="py-6 px-4 text-center">
-          <h2 class="text-2xl font-bold text-maroon">&#x0938;&#x094D;&#x0924;&#x094D;&#x0930;&#x0940;&#x0930;&#x0924;&#x094D;&#x0928;</h2>
-          <span class="text-xs text-gray-400">Admin Panel</span>
-        </div>
-        <hr class="border-gray-200" />
-        <nav class="mt-2">
-          <a routerLink="/admin/dashboard" routerLinkActive="bg-maroon/10 text-maroon"
-             class="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition">
-            <span class="material-icons text-xl">dashboard</span>
-            <span class="text-sm font-medium">Dashboard</span>
-          </a>
-          <a routerLink="/admin/orders" routerLinkActive="bg-maroon/10 text-maroon"
-             class="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition">
-            <span class="material-icons text-xl">receipt_long</span>
-            <span class="text-sm font-medium">Orders</span>
-          </a>
-          <a routerLink="/admin/products" routerLinkActive="bg-maroon/10 text-maroon"
-             class="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition">
-            <span class="material-icons text-xl">inventory_2</span>
-            <span class="text-sm font-medium">Products</span>
-          </a>
-          <a routerLink="/admin/categories" routerLinkActive="bg-maroon/10 text-maroon"
-             class="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition">
-            <span class="material-icons text-xl">category</span>
-            <span class="text-sm font-medium">Categories</span>
-          </a>
-          <hr class="border-gray-200 my-2" />
-          <a routerLink="/" class="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition">
-            <span class="material-icons text-xl">storefront</span>
-            <span class="text-sm font-medium">View Shop</span>
-          </a>
-          <button (click)="onLogout()"
-                  class="flex items-center gap-3 px-5 py-3 text-red-600 hover:bg-red-50 transition w-full text-left">
-            <span class="material-icons text-xl">logout</span>
-            <span class="text-sm font-medium">Logout</span>
-          </button>
-        </nav>
-      </aside>
+    <div class="space-y-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <h2 class="font-heading text-xl font-bold text-gray-900">Products</h2>
+        <button (click)="showForm.set(!showForm())"
+          class="px-5 py-2.5 bg-maroon text-white text-sm font-semibold rounded-full
+                 hover:bg-maroon-dark transition-colors">
+          {{ showForm() ? 'Cancel' : '+ Add Product' }}
+        </button>
+      </div>
 
-      <!-- Main Content -->
-      <main class="flex-1 md:ml-64 p-6">
-        <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
-          <h1 class="text-2xl font-bold text-gray-800">Manage Products</h1>
-          <button (click)="openForm()"
-                  class="inline-flex items-center gap-2 bg-maroon hover:bg-maroon-dark text-white px-4 py-2.5 rounded-lg font-medium transition text-sm">
-            <span class="material-icons text-lg">add</span> Add New Product
-          </button>
+      <!-- Add/Edit Form -->
+      @if (showForm()) {
+        <div class="bg-white rounded-2xl p-6 shadow-sm space-y-4">
+          <h3 class="font-heading text-lg font-semibold">
+            {{ editingId() ? 'Edit Product' : 'Add New Product' }}
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+              <input type="text" [(ngModel)]="form.name"
+                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+              <select [(ngModel)]="form.categoryId"
+                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gold/50">
+                <option value="">Select category</option>
+                @for (cat of categories(); track cat.id) {
+                  <option [value]="cat.id">{{ cat.name }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Price *</label>
+              <input type="number" [(ngModel)]="form.price"
+                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Original Price</label>
+              <input type="number" [(ngModel)]="form.originalPrice"
+                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+              <textarea [(ngModel)]="form.description" rows="3"
+                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm resize-none
+                       focus:outline-none focus:ring-2 focus:ring-gold/50"></textarea>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Image URLs (comma separated)</label>
+              <input type="text" [(ngModel)]="form.imagesStr"
+                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gold/50"
+                placeholder="https://image1.jpg, https://image2.jpg" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Material</label>
+              <input type="text" [(ngModel)]="form.material"
+                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Weight</label>
+              <input type="text" [(ngModel)]="form.weight"
+                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+          </div>
+          <div class="flex items-center gap-6 flex-wrap">
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" [(ngModel)]="form.inStock" class="rounded" />
+              In Stock
+            </label>
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" [(ngModel)]="form.featured" class="rounded" />
+              Featured
+            </label>
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" [(ngModel)]="form.bestSeller" class="rounded" />
+              Best Seller
+            </label>
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" [(ngModel)]="form.newArrival" class="rounded" />
+              New Arrival
+            </label>
+          </div>
+          <div class="flex gap-3">
+            <button (click)="saveProduct()"
+              class="px-6 py-2.5 bg-maroon text-white text-sm font-semibold rounded-full
+                     hover:bg-maroon-dark transition-colors">
+              {{ editingId() ? 'Update' : 'Save' }}
+            </button>
+            <button (click)="resetForm()"
+              class="px-6 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-full
+                     hover:bg-gray-200 transition-colors">
+              Reset
+            </button>
+          </div>
         </div>
+      }
 
-        <!-- Products Table -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <!-- Product List -->
+      <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+        @if (products().length === 0) {
+          <div class="p-8 text-center text-gray-500 text-sm">No products found. Add your first product!</div>
+        } @else {
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="w-full">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Image</th>
-                  <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Name</th>
-                  <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Category</th>
-                  <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Price</th>
-                  <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Stock</th>
-                  <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Featured</th>
-                  <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Product</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Price</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Tags</th>
+                  <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100">
-                <tr *ngFor="let product of products" class="hover:bg-gray-50 transition">
-                  <td class="px-4 py-3">
-                    <img [src]="product.images?.[0] || 'https://via.placeholder.com/50'"
-                         class="w-12 h-12 object-cover rounded-md border border-gray-200"
-                         [alt]="product.nameEn"
-                         onerror="this.src='https://via.placeholder.com/50'" />
-                  </td>
-                  <td class="px-4 py-3">
-                    <div class="font-semibold text-gray-800">{{ product.nameEn }}</div>
-                    <div class="text-xs text-gray-400">{{ product.nameHi }}</div>
-                  </td>
-                  <td class="px-4 py-3 text-gray-600">{{ product.category }}</td>
-                  <td class="px-4 py-3">
-                    <span class="font-bold text-maroon">{{ product.price | currencyInr }}</span>
-                    <span *ngIf="product.mrp > product.price" class="text-xs text-gray-400 line-through ml-1">{{ product.mrp | currencyInr }}</span>
-                  </td>
-                  <td class="px-4 py-3">
-                    <span [ngClass]="product.inStock ? 'text-green-600' : 'text-red-600'" class="font-semibold text-xs">
-                      {{ product.inStock ? 'In Stock' : 'Out of Stock' }}
-                    </span>
-                  </td>
-                  <td class="px-4 py-3">
-                    <span class="material-icons text-xl" [ngClass]="product.featured ? 'text-orange-500' : 'text-gray-300'">
-                      {{ product.featured ? 'star' : 'star_border' }}
-                    </span>
-                  </td>
-                  <td class="px-4 py-3">
-                    <div class="flex items-center gap-1">
-                      <button (click)="editProduct(product)" title="Edit"
-                              class="text-blue-600 hover:text-blue-800 transition p-1">
-                        <span class="material-icons text-xl">edit</span>
-                      </button>
-                      <button (click)="confirmDelete(product)" title="Delete"
-                              class="text-red-500 hover:text-red-700 transition p-1">
-                        <span class="material-icons text-xl">delete</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                @for (product of products(); track product.id) {
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4">
+                      <div class="flex items-center gap-3">
+                        @if (product.images[0]) {
+                          <img [src]="product.images[0]" class="w-10 h-10 rounded-lg object-cover" />
+                        }
+                        <div>
+                          <p class="text-sm font-medium text-gray-900">{{ product.name }}</p>
+                          <p class="text-xs text-gray-500">{{ product.categoryName }}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm font-semibold">{{ product.price | inr }}</td>
+                    <td class="px-6 py-4">
+                      <span class="px-2.5 py-1 text-xs font-semibold rounded-full"
+                            [class]="product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                        {{ product.inStock ? 'In Stock' : 'Out of Stock' }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex gap-1 flex-wrap">
+                        @if (product.featured) {
+                          <span class="px-2 py-0.5 text-[10px] bg-gold/10 text-gold rounded-full">Featured</span>
+                        }
+                        @if (product.bestSeller) {
+                          <span class="px-2 py-0.5 text-[10px] bg-maroon/10 text-maroon rounded-full">Bestseller</span>
+                        }
+                        @if (product.newArrival) {
+                          <span class="px-2 py-0.5 text-[10px] bg-blue-100 text-blue-800 rounded-full">New</span>
+                        }
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                      <div class="flex items-center justify-end gap-2">
+                        <button (click)="editProduct(product)"
+                          class="p-2 text-gray-400 hover:text-maroon transition-colors" title="Edit">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button (click)="deleteProduct(product.id)"
+                          class="p-2 text-gray-400 hover:text-red-500 transition-colors" title="Delete">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
               </tbody>
             </table>
           </div>
-          <div *ngIf="products.length === 0" class="py-10 text-center text-gray-400">
-            No products yet. Click "Add New Product" to get started.
-          </div>
-        </div>
-
-        <!-- Add/Edit Product Modal -->
-        <div *ngIf="showForm" class="fixed inset-0 bg-black/50 z-[1000] flex justify-center items-start pt-10 overflow-y-auto"
-             (click)="showForm = false">
-          <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto mx-4 mb-10"
-               (click)="$event.stopPropagation()">
-            <!-- Header -->
-            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 class="text-lg font-bold text-maroon">{{ isEditing ? 'Edit Product' : 'Add New Product' }}</h2>
-              <button (click)="showForm = false" class="text-gray-400 hover:text-gray-600">
-                <span class="material-icons">close</span>
-              </button>
-            </div>
-            <!-- Form -->
-            <div class="p-5">
-              <form (ngSubmit)="saveProduct()" class="space-y-4">
-                <!-- Names -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Name (English)</label>
-                    <input type="text" [(ngModel)]="formData.nameEn" name="nameEn" required
-                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-maroon" />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Name (Hindi)</label>
-                    <input type="text" [(ngModel)]="formData.nameHi" name="nameHi" required
-                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-maroon" />
-                  </div>
-                </div>
-
-                <!-- Category -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                  <select [(ngModel)]="formData.category" name="category" required
-                          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-maroon bg-white">
-                    <option value="" disabled>Select category</option>
-                    <option *ngFor="let cat of categories" [value]="cat.nameEn">{{ cat.nameEn }} ({{ cat.nameHi }})</option>
-                  </select>
-                </div>
-
-                <!-- Price / MRP -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Price (&#8377;)</label>
-                    <input type="number" [(ngModel)]="formData.price" name="price" required
-                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-maroon" />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">MRP (&#8377;)</label>
-                    <input type="number" [(ngModel)]="formData.mrp" name="mrp" required
-                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-maroon" />
-                  </div>
-                </div>
-
-                <!-- Material -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Material</label>
-                  <select [(ngModel)]="formData.material" name="material" required
-                          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-maroon bg-white">
-                    <option value="" disabled>Select material</option>
-                    <option *ngFor="let mat of materials" [value]="mat">{{ mat }}</option>
-                  </select>
-                </div>
-
-                <!-- Description -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea [(ngModel)]="formData.description" name="description" rows="3"
-                            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-maroon resize-y"></textarea>
-                </div>
-
-                <!-- Image URL -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                  <div class="relative">
-                    <input type="text" [(ngModel)]="formData.imageUrl" name="imageUrl"
-                           placeholder="https://example.com/image.jpg"
-                           class="w-full px-3 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-maroon focus:border-maroon" />
-                    <span class="material-icons absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">image</span>
-                  </div>
-                </div>
-
-                <!-- Toggles -->
-                <div class="flex items-center gap-8 py-2">
-                  <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" [(ngModel)]="formData.inStock" name="inStock"
-                           class="w-4 h-4 text-maroon border-gray-300 rounded focus:ring-maroon" />
-                    <span class="text-sm font-medium text-gray-700">In Stock</span>
-                  </label>
-                  <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" [(ngModel)]="formData.featured" name="featured"
-                           class="w-4 h-4 text-maroon border-gray-300 rounded focus:ring-maroon" />
-                    <span class="text-sm font-medium text-gray-700">Featured</span>
-                  </label>
-                </div>
-
-                <!-- Actions -->
-                <div class="flex justify-end gap-3 pt-2">
-                  <button type="button" (click)="showForm = false"
-                          class="px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
-                    Cancel
-                  </button>
-                  <button type="submit"
-                          class="px-5 py-2.5 bg-maroon hover:bg-maroon-dark text-white rounded-lg text-sm font-medium transition">
-                    {{ isEditing ? 'Update Product' : 'Add Product' }}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-
-        <!-- Delete Confirmation Modal -->
-        <div *ngIf="productToDelete" class="fixed inset-0 bg-black/50 z-[1000] flex justify-center items-start pt-32"
-             (click)="productToDelete = null">
-          <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 mx-4"
-               (click)="$event.stopPropagation()">
-            <h2 class="text-lg font-bold text-red-600 mb-3">Delete Product</h2>
-            <p class="text-gray-600 mb-5">Are you sure you want to delete <strong>"{{ productToDelete.nameEn }}"</strong>? This action cannot be undone.</p>
-            <div class="flex justify-end gap-3">
-              <button (click)="productToDelete = null"
-                      class="px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
-                Cancel
-              </button>
-              <button (click)="deleteProduct()"
-                      class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition">
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      </main>
+        }
+      </div>
     </div>
   `,
-  styles: [],
 })
-export class ManageProductsComponent implements OnInit, OnDestroy {
+export class ManageProductsComponent implements OnInit {
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
-  private authService = inject(AuthService);
-  private router = inject(Router);
 
-  products: Product[] = [];
-  categories: Category[] = [];
-  showForm = false;
-  isEditing = false;
-  editingProductId: string | null = null;
-  productToDelete: Product | null = null;
+  products = signal<Product[]>([]);
+  categories = signal<Category[]>([]);
+  showForm = signal(false);
+  editingId = signal<string | null>(null);
 
-  materials = ['Gold Plated', 'Silver', 'Artificial', 'Oxidized', 'Pearl', 'Kundan'];
-
-  formData = {
-    nameEn: '',
-    nameHi: '',
-    category: '',
-    price: 0,
-    mrp: 0,
-    material: '',
+  form = {
+    name: '',
     description: '',
-    imageUrl: '',
+    price: 0,
+    originalPrice: 0,
+    categoryId: '',
+    imagesStr: '',
+    material: '',
+    weight: '',
     inStock: true,
     featured: false,
+    bestSeller: false,
+    newArrival: false,
   };
 
-  private subscriptions: Subscription[] = [];
-
   ngOnInit(): void {
-    const prodSub = this.productService.getAll().subscribe(products => {
-      this.products = products;
-    });
-    this.subscriptions.push(prodSub);
-
-    const catSub = this.categoryService.getAll().subscribe(categories => {
-      this.categories = categories.filter(c => c.isActive);
-    });
-    this.subscriptions.push(catSub);
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe());
-  }
-
-  openForm(): void {
-    this.isEditing = false;
-    this.editingProductId = null;
-    this.formData = {
-      nameEn: '',
-      nameHi: '',
-      category: '',
-      price: 0,
-      mrp: 0,
-      material: '',
-      description: '',
-      imageUrl: '',
-      inStock: true,
-      featured: false,
-    };
-    this.showForm = true;
-  }
-
-  editProduct(product: Product): void {
-    this.isEditing = true;
-    this.editingProductId = product.id || null;
-    this.formData = {
-      nameEn: product.nameEn,
-      nameHi: product.nameHi,
-      category: product.category,
-      price: product.price,
-      mrp: product.mrp,
-      material: product.material,
-      description: product.description,
-      imageUrl: product.images?.[0] || '',
-      inStock: product.inStock,
-      featured: product.featured,
-    };
-    this.showForm = true;
+    this.productService.getProducts().subscribe((p) => this.products.set(p));
+    this.categoryService.getCategories().subscribe((c) => this.categories.set(c));
   }
 
   async saveProduct(): Promise<void> {
-    const productData: Product = {
-      nameEn: this.formData.nameEn,
-      nameHi: this.formData.nameHi,
-      category: this.formData.category,
-      price: this.formData.price,
-      mrp: this.formData.mrp,
-      material: this.formData.material,
-      description: this.formData.description,
-      images: this.formData.imageUrl ? [this.formData.imageUrl] : [],
-      inStock: this.formData.inStock,
-      featured: this.formData.featured,
+    const images = this.form.imagesStr
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const data: any = {
+      name: this.form.name,
+      description: this.form.description,
+      price: this.form.price,
+      originalPrice: this.form.originalPrice || undefined,
+      categoryId: this.form.categoryId,
+      categoryName: this.categories().find((c) => c.id === this.form.categoryId)?.name || '',
+      images,
+      material: this.form.material || undefined,
+      weight: this.form.weight || undefined,
+      inStock: this.form.inStock,
+      featured: this.form.featured,
+      bestSeller: this.form.bestSeller,
+      newArrival: this.form.newArrival,
     };
 
-    try {
-      if (this.isEditing && this.editingProductId) {
-        await this.productService.update(this.editingProductId, productData);
-      } else {
-        await this.productService.add(productData);
-      }
-      this.showForm = false;
-    } catch (err) {
-      console.error('Error saving product:', err);
+    if (this.editingId()) {
+      await this.productService.updateProduct(this.editingId()!, data);
+    } else {
+      await this.productService.addProduct(data);
+    }
+
+    this.resetForm();
+    this.showForm.set(false);
+  }
+
+  editProduct(product: Product): void {
+    this.editingId.set(product.id);
+    this.form = {
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      originalPrice: product.originalPrice || 0,
+      categoryId: product.categoryId,
+      imagesStr: product.images.join(', '),
+      material: product.material || '',
+      weight: product.weight || '',
+      inStock: product.inStock,
+      featured: product.featured,
+      bestSeller: product.bestSeller,
+      newArrival: product.newArrival,
+    };
+    this.showForm.set(true);
+  }
+
+  async deleteProduct(id: string): Promise<void> {
+    if (confirm('Are you sure you want to delete this product?')) {
+      await this.productService.deleteProduct(id);
     }
   }
 
-  confirmDelete(product: Product): void {
-    this.productToDelete = product;
-  }
-
-  async deleteProduct(): Promise<void> {
-    if (this.productToDelete?.id) {
-      try {
-        await this.productService.delete(this.productToDelete.id);
-      } catch (err) {
-        console.error('Error deleting product:', err);
-      }
-    }
-    this.productToDelete = null;
-  }
-
-  async onLogout(): Promise<void> {
-    await this.authService.logout();
-    this.router.navigate(['/admin/login']);
+  resetForm(): void {
+    this.editingId.set(null);
+    this.form = {
+      name: '',
+      description: '',
+      price: 0,
+      originalPrice: 0,
+      categoryId: '',
+      imagesStr: '',
+      material: '',
+      weight: '',
+      inStock: true,
+      featured: false,
+      bestSeller: false,
+      newArrival: false,
+    };
   }
 }

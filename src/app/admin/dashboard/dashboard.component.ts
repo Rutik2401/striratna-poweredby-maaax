@@ -1,221 +1,157 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 import { OrderService } from '../../core/services/order.service';
 import { ProductService } from '../../core/services/product.service';
-import { AuthService } from '../../core/services/auth.service';
 import { Order } from '../../core/models/order.model';
 import { CurrencyInrPipe } from '../../shared/pipes/currency-inr.pipe';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, CurrencyInrPipe],
+  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet, CurrencyInrPipe],
   template: `
-    <div class="flex min-h-screen bg-gray-100">
-      <!-- Sidebar -->
-      <aside class="w-64 bg-white border-r border-gray-200 fixed top-0 left-0 bottom-0 z-50 overflow-y-auto hidden md:block">
-        <div class="py-6 px-4 text-center">
-          <h2 class="text-2xl font-bold text-maroon">&#x0938;&#x094D;&#x0924;&#x094D;&#x0930;&#x0940;&#x0930;&#x0924;&#x094D;&#x0928;</h2>
-          <span class="text-xs text-gray-400">Admin Panel</span>
-        </div>
-        <hr class="border-gray-200" />
-        <nav class="mt-2">
-          <a routerLink="/admin/dashboard" routerLinkActive="bg-maroon/10 text-maroon"
-             class="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition">
-            <span class="material-icons text-xl">dashboard</span>
-            <span class="text-sm font-medium">Dashboard</span>
-          </a>
-          <a routerLink="/admin/orders" routerLinkActive="bg-maroon/10 text-maroon"
-             class="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition">
-            <span class="material-icons text-xl">receipt_long</span>
-            <span class="text-sm font-medium">Orders</span>
-          </a>
-          <a routerLink="/admin/products" routerLinkActive="bg-maroon/10 text-maroon"
-             class="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition">
-            <span class="material-icons text-xl">inventory_2</span>
-            <span class="text-sm font-medium">Products</span>
-          </a>
-          <a routerLink="/admin/categories" routerLinkActive="bg-maroon/10 text-maroon"
-             class="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition">
-            <span class="material-icons text-xl">category</span>
-            <span class="text-sm font-medium">Categories</span>
-          </a>
-          <hr class="border-gray-200 my-2" />
-          <a routerLink="/" class="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition">
-            <span class="material-icons text-xl">storefront</span>
-            <span class="text-sm font-medium">View Shop</span>
-          </a>
-          <button (click)="onLogout()"
-                  class="flex items-center gap-3 px-5 py-3 text-red-600 hover:bg-red-50 transition w-full text-left">
-            <span class="material-icons text-xl">logout</span>
-            <span class="text-sm font-medium">Logout</span>
-          </button>
-        </nav>
-      </aside>
-
-      <!-- Main Content -->
-      <main class="flex-1 md:ml-64 p-6">
-        <h1 class="text-2xl font-bold text-gray-800 mb-6">Admin Dashboard</h1>
-
-        <!-- Stat Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          <!-- Orders Today -->
-          <div class="bg-white rounded-xl shadow-sm border-l-4 border-maroon p-5 flex items-center gap-4">
-            <span class="material-icons text-4xl text-maroon">shopping_bag</span>
-            <div class="flex flex-col">
-              <span class="text-2xl font-bold text-gray-800">{{ todayOrdersCount }}</span>
-              <span class="text-xs text-gray-400 mt-0.5">Orders Today</span>
+    <div class="min-h-screen bg-gray-50">
+      <!-- Admin Navbar -->
+      <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex items-center justify-between h-16">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center">
+                <span class="text-white font-heading font-bold text-sm">स्त्री</span>
+              </div>
+              <span class="font-heading text-lg font-bold text-maroon">Admin Panel</span>
             </div>
-          </div>
-          <!-- Revenue -->
-          <div class="bg-white rounded-xl shadow-sm border-l-4 border-green-600 p-5 flex items-center gap-4">
-            <span class="material-icons text-4xl text-green-600">account_balance_wallet</span>
-            <div class="flex flex-col">
-              <span class="text-2xl font-bold text-gray-800">{{ todayRevenue | currencyInr }}</span>
-              <span class="text-xs text-gray-400 mt-0.5">Revenue Today</span>
-            </div>
-          </div>
-          <!-- Pending -->
-          <div class="bg-white rounded-xl shadow-sm border-l-4 border-orange-600 p-5 flex items-center gap-4">
-            <span class="material-icons text-4xl text-orange-600">pending_actions</span>
-            <div class="flex flex-col">
-              <span class="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                {{ pendingOrdersCount }}
-                <span *ngIf="pendingOrdersCount > 0"
-                      class="text-[10px] bg-orange-600 text-white px-2 py-0.5 rounded-full font-semibold uppercase">pending</span>
-              </span>
-              <span class="text-xs text-gray-400 mt-0.5">Pending Orders</span>
-            </div>
-          </div>
-          <!-- Products -->
-          <div class="bg-white rounded-xl shadow-sm border-l-4 border-blue-600 p-5 flex items-center gap-4">
-            <span class="material-icons text-4xl text-blue-600">diamond</span>
-            <div class="flex flex-col">
-              <span class="text-2xl font-bold text-gray-800">{{ totalProducts }}</span>
-              <span class="text-xs text-gray-400 mt-0.5">Total Products</span>
+            <div class="flex items-center gap-4">
+              <a routerLink="/" class="text-sm text-gray-500 hover:text-maroon transition-colors">
+                View Site
+              </a>
+              <button (click)="logout()"
+                class="text-sm text-gray-500 hover:text-red-500 transition-colors">
+                Logout
+              </button>
             </div>
           </div>
         </div>
+      </nav>
 
-        <!-- Recent Orders -->
-        <div class="bg-white rounded-xl shadow-sm mb-8 overflow-hidden">
-          <div class="px-5 py-4 border-b border-gray-100">
-            <h2 class="text-lg font-semibold text-gray-800">Recent Orders</h2>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Order #</th>
-                  <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Customer</th>
-                  <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Amount</th>
-                  <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
-                  <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Date</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                <tr *ngFor="let order of recentOrders" class="hover:bg-gray-50 transition">
-                  <td class="px-5 py-3 font-medium text-gray-800">{{ order.orderNumber }}</td>
-                  <td class="px-5 py-3 text-gray-600">{{ order.customer.name }}</td>
-                  <td class="px-5 py-3 text-gray-800 font-semibold">{{ order.totalAmount | currencyInr }}</td>
-                  <td class="px-5 py-3">
-                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold capitalize"
-                          [ngClass]="{
-                            'bg-orange-100 text-orange-700': order.status === 'pending',
-                            'bg-blue-100 text-blue-700': order.status === 'packed',
-                            'bg-purple-100 text-purple-700': order.status === 'dispatched',
-                            'bg-green-100 text-green-700': order.status === 'delivered'
-                          }">
-                      {{ order.status }}
-                    </span>
-                  </td>
-                  <td class="px-5 py-3 text-gray-500">
-                    {{ order.orderDate?.toDate ? (order.orderDate.toDate() | date:'dd MMM yyyy') : (order.orderDate | date:'dd MMM yyyy') }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div *ngIf="recentOrders.length === 0" class="py-10 text-center text-gray-400">
-            No orders yet.
-          </div>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Tab Navigation -->
+        <div class="flex gap-1 bg-white rounded-xl p-1 shadow-sm mb-8 overflow-x-auto">
+          @for (tab of tabs; track tab.path) {
+            <a [routerLink]="tab.path" routerLinkActive="bg-maroon text-white shadow-sm"
+               [routerLinkActiveOptions]="{ exact: tab.exact }"
+               class="px-5 py-2.5 rounded-lg text-sm font-medium text-gray-600
+                      hover:text-maroon transition-all whitespace-nowrap">
+              {{ tab.label }}
+            </a>
+          }
         </div>
 
-        <!-- Quick Actions -->
-        <div class="flex flex-wrap gap-3">
-          <a routerLink="/admin/orders"
-             class="inline-flex items-center gap-2 bg-maroon hover:bg-maroon-dark text-white px-5 py-2.5 rounded-lg font-medium transition">
-            <span class="material-icons text-lg">receipt_long</span> Manage Orders
-          </a>
-          <a routerLink="/admin/products"
-             class="inline-flex items-center gap-2 bg-maroon hover:bg-maroon-dark text-white px-5 py-2.5 rounded-lg font-medium transition">
-            <span class="material-icons text-lg">add_box</span> Add Product
-          </a>
-          <a routerLink="/"
-             class="inline-flex items-center gap-2 border border-maroon text-maroon hover:bg-maroon hover:text-white px-5 py-2.5 rounded-lg font-medium transition">
-            <span class="material-icons text-lg">storefront</span> View Shop
-          </a>
-        </div>
-      </main>
+        <!-- Overview Stats (shown on main dashboard) -->
+        @if (showOverview) {
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-2xl p-5 shadow-sm">
+              <p class="text-sm text-gray-500">Total Orders</p>
+              <p class="text-2xl font-bold text-maroon mt-1">{{ totalOrders() }}</p>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm">
+              <p class="text-sm text-gray-500">Revenue</p>
+              <p class="text-2xl font-bold text-green-600 mt-1">{{ totalRevenue() | inr }}</p>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm">
+              <p class="text-sm text-gray-500">Products</p>
+              <p class="text-2xl font-bold text-gold mt-1">{{ totalProducts() }}</p>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm">
+              <p class="text-sm text-gray-500">Pending Orders</p>
+              <p class="text-2xl font-bold text-orange-500 mt-1">{{ pendingOrders() }}</p>
+            </div>
+          </div>
+
+          <!-- Recent Orders -->
+          <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-gray-100">
+              <h3 class="font-heading text-lg font-semibold text-gray-900">Recent Orders</h3>
+            </div>
+            @if (recentOrders().length === 0) {
+              <div class="p-8 text-center text-gray-500 text-sm">No orders yet</div>
+            } @else {
+              <div class="overflow-x-auto">
+                <table class="w-full">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Customer</th>
+                      <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Items</th>
+                      <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Total</th>
+                      <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-100">
+                    @for (order of recentOrders(); track order.id) {
+                      <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                          <p class="text-sm font-medium text-gray-900">{{ order.customerName }}</p>
+                          <p class="text-xs text-gray-500">{{ order.customerPhone }}</p>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ order.items.length }} items</td>
+                        <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ order.totalAmount | inr }}</td>
+                        <td class="px-6 py-4">
+                          <span class="px-2.5 py-1 text-xs font-semibold rounded-full capitalize
+                                       bg-yellow-100 text-yellow-800">
+                            {{ order.status }}
+                          </span>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        }
+
+        <router-outlet></router-outlet>
+      </div>
     </div>
   `,
-  styles: [],
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class DashboardComponent implements OnInit {
+  private authService = inject(AuthService);
   private orderService = inject(OrderService);
   private productService = inject(ProductService);
-  private authService = inject(AuthService);
   private router = inject(Router);
 
-  todayOrdersCount = 0;
-  todayRevenue = 0;
-  pendingOrdersCount = 0;
-  totalProducts = 0;
-  recentOrders: Order[] = [];
+  totalOrders = signal(0);
+  totalRevenue = signal(0);
+  totalProducts = signal(0);
+  pendingOrders = signal(0);
+  recentOrders = signal<Order[]>([]);
 
-  private subscriptions: Subscription[] = [];
+  showOverview = true;
+
+  tabs = [
+    { path: '/admin/dashboard', label: 'Overview', exact: true },
+    { path: '/admin/dashboard/orders', label: 'Orders', exact: false },
+    { path: '/admin/dashboard/products', label: 'Products', exact: false },
+    { path: '/admin/dashboard/categories', label: 'Categories', exact: false },
+  ];
 
   ngOnInit(): void {
-    this.loadDashboardData();
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe());
-  }
-
-  private loadDashboardData(): void {
-    const ordersSub = this.orderService.getAll().subscribe(orders => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const todayOrders = orders.filter(o => {
-        const orderDate = o.orderDate?.toDate ? o.orderDate.toDate() : new Date(o.orderDate);
-        return orderDate >= today;
-      });
-
-      this.todayOrdersCount = todayOrders.length;
-      this.todayRevenue = todayOrders.reduce((sum, o) => sum + o.totalAmount, 0);
-      this.pendingOrdersCount = orders.filter(o => o.status === 'pending').length;
-
-      this.recentOrders = orders
-        .sort((a, b) => {
-          const dateA = a.orderDate?.toDate ? a.orderDate.toDate() : new Date(a.orderDate);
-          const dateB = b.orderDate?.toDate ? b.orderDate.toDate() : new Date(b.orderDate);
-          return dateB.getTime() - dateA.getTime();
-        })
-        .slice(0, 10);
+    this.orderService.getOrders().subscribe((orders) => {
+      this.totalOrders.set(orders.length);
+      this.totalRevenue.set(orders.reduce((sum, o) => sum + o.totalAmount, 0));
+      this.pendingOrders.set(orders.filter((o) => o.status === 'pending').length);
+      this.recentOrders.set(orders.slice(0, 5));
     });
-    this.subscriptions.push(ordersSub);
 
-    const productsSub = this.productService.getAll().subscribe(products => {
-      this.totalProducts = products.length;
+    this.productService.getProducts().subscribe((products) => {
+      this.totalProducts.set(products.length);
     });
-    this.subscriptions.push(productsSub);
   }
 
-  async onLogout(): Promise<void> {
+  async logout(): Promise<void> {
     await this.authService.logout();
     this.router.navigate(['/admin/login']);
   }
