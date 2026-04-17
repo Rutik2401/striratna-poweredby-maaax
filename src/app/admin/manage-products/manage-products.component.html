@@ -135,8 +135,16 @@
   </div>
 } @else {
   <div class="prod-tablecard">
-    <div class="overflow-x-auto">
-      <table class="prod-table">
+    <header class="prod-tablecard__header">
+      <div>
+        <h3 class="text-sm font-bold text-gray-900">Catalogue</h3>
+        <p class="text-xs text-gray-400 mt-0.5">
+          Showing {{ filteredCount() }} of {{ totalCount() }} · scroll within to see more
+        </p>
+      </div>
+    </header>
+    <div class="prod-tablecard__scroll">
+      <table class="prod-table prod-table--sticky">
         <thead>
           <tr>
             <th>Product</th>

@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  HostListener,
   OnInit,
   computed,
   inject,
@@ -243,6 +244,7 @@ export class DashboardComponent implements OnInit {
       .subscribe((e) => {
         this.currentUrl.set((e as NavigationEnd).urlAfterRedirects);
         this.mobileMenuOpen.set(false);
+        this.notificationsOpen.set(false);
       });
 
     this.orderService
@@ -285,6 +287,15 @@ export class DashboardComponent implements OnInit {
 
   closeNotifications(): void {
     this.notificationsOpen.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.notificationsOpen()) {
+      this.notificationsOpen.set(false);
+    } else if (this.mobileMenuOpen()) {
+      this.mobileMenuOpen.set(false);
+    }
   }
 
   markAllAsRead(): void {
