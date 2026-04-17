@@ -1,0 +1,247 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-8">
+    <a routerLink="/" class="hover:text-gold transition-colors">Home</a>
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+    </svg>
+    <a routerLink="/shop" class="hover:text-gold transition-colors">Shop</a>
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+    </svg>
+    <span class="text-gray-800 font-medium truncate">{{ product()?.name }}</span>
+  </nav>
+
+  @if (loading()) {
+    <app-skeleton-loader type="product-detail" />
+  } @else if (product()) {
+    @let p = product()!;
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+      <!-- Images -->
+      <div class="space-y-4">
+        <div
+          class="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-cream to-white shadow-sm relative cursor-zoom-in border border-gray-100 group/zoom"
+          (mouseenter)="isZooming.set(true)"
+          (mouseleave)="isZooming.set(false)"
+          (mousemove)="onMouseMove($event)"
+        >
+          <!-- Base image - always centered, contained -->
+          <img
+            [src]="selectedImage()"
+            [alt]="p.name"
+            class="absolute inset-0 w-full h-full object-contain p-4 transition-all duration-300"
+            [class.scale-95]="isZooming()"
+            [class.opacity-30]="isZooming()"
+            loading="eager"
+          />
+
+          @if (isZooming()) {
+            <div
+              class="absolute inset-0 transition-opacity duration-200 pointer-events-none"
+              [style.background-image]="'url(' + selectedImage() + ')'"
+              [style.background-size]="zoomLevel() * 100 + '%'"
+              [style.background-position]="zoomPosition()"
+              [style.background-repeat]="'no-repeat'"
+              [style.background-color]="'white'"
+            ></div>
+            <div class="absolute top-3 right-3 px-3 py-1.5 bg-maroon/80 text-white text-[11px] font-medium rounded-full backdrop-blur-sm pointer-events-none flex items-center gap-1.5 shadow-lg">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m-3-3h6" />
+              </svg>
+              Zoom · {{ zoomLevel() }}x
+            </div>
+          } @else {
+            <div class="absolute bottom-3 right-3 px-3 py-1.5 bg-white/90 text-gray-700 text-[11px] font-medium rounded-full backdrop-blur-sm pointer-events-none flex items-center gap-1.5 shadow">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              Hover to zoom
+            </div>
+          }
+
+          <!-- Zoom Controls (visible on hover) -->
+          <div class="absolute top-3 left-3 flex flex-col gap-1 bg-white/95 rounded-full shadow-lg backdrop-blur-sm p-1 z-10 opacity-0 group-hover/zoom:opacity-100 transition-opacity duration-300">
+            <button
+              (click)="zoomIn($event)"
+              [disabled]="zoomLevel() >= maxZoom"
+              class="w-8 h-8 flex items-center justify-center rounded-full text-maroon hover:bg-gold/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title="Zoom in"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+            <div class="text-[10px] font-semibold text-center text-gray-600 py-0.5 border-y border-gray-100">
+              {{ zoomLevel() }}x
+            </div>
+            <button
+              (click)="zoomOut($event)"
+              [disabled]="zoomLevel() <= minZoom"
+              class="w-8 h-8 flex items-center justify-center rounded-full text-maroon hover:bg-gold/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title="Zoom out"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4" />
+              </svg>
+            </button>
+            <button
+              (click)="resetZoom($event)"
+              class="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
+              title="Reset zoom"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        @if (p.images.length > 1) {
+          <div class="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+            @for (img of p.images; track img) {
+              <button
+                (click)="selectedImage.set(img)"
+                class="w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-200 shrink-0 bg-gradient-to-br from-cream to-white"
+                [class]="selectedImage() === img ? 'border-gold shadow-md ring-2 ring-gold/20' : 'border-gray-200 hover:border-gold/40'"
+              >
+                <img [src]="img" [alt]="p.name" class="w-full h-full object-contain p-1" loading="lazy" />
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Details -->
+      <div class="space-y-6">
+        <!-- Badges -->
+        <div class="flex items-center gap-2 flex-wrap">
+          @if (p.categoryName) {
+            <span class="px-3 py-1 text-xs font-semibold text-gold bg-gold/10 rounded-full uppercase tracking-wider">
+              {{ p.categoryName }}
+            </span>
+          }
+          @if (p.newArrival) {
+            <span class="px-3 py-1 text-xs font-semibold text-white bg-maroon rounded-full">New Arrival</span>
+          }
+          @if (p.bestSeller) {
+            <span class="px-3 py-1 text-xs font-semibold text-white bg-gold rounded-full">Bestseller</span>
+          }
+          @if (!p.inStock) {
+            <span class="px-3 py-1 text-xs font-semibold text-white bg-gray-500 rounded-full">Out of Stock</span>
+          }
+        </div>
+
+        <h1 class="font-heading text-2xl lg:text-4xl font-bold text-gray-900">
+          {{ p.name }}
+        </h1>
+
+        <!-- Price -->
+        <div class="flex items-baseline gap-3">
+          <span class="text-3xl font-bold text-maroon">{{ p.price | inr }}</span>
+          @if (hasDiscount()) {
+            <span class="text-lg text-gray-400 line-through">{{ p.originalPrice | inr }}</span>
+            <span class="px-2.5 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-full">
+              {{ discountPercent() }}% OFF
+            </span>
+          }
+        </div>
+
+        <!-- Description -->
+        <p class="text-gray-600 leading-relaxed">{{ p.description }}</p>
+
+        <!-- Specs -->
+        @if (p.weight || p.material || p.dimensions) {
+          <div class="bg-cream rounded-xl p-4 space-y-2">
+            @if (p.material) {
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-500">Material</span>
+                <span class="font-medium text-gray-800">{{ p.material }}</span>
+              </div>
+            }
+            @if (p.weight) {
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-500">Weight</span>
+                <span class="font-medium text-gray-800">{{ p.weight }}</span>
+              </div>
+            }
+            @if (p.dimensions) {
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-500">Dimensions</span>
+                <span class="font-medium text-gray-800">{{ p.dimensions }}</span>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Quantity -->
+        @if (p.inStock) {
+          <div class="flex items-center gap-4">
+            <span class="text-sm font-medium text-gray-700">Quantity:</span>
+            <div class="flex items-center bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <button
+                (click)="decrementQuantity()"
+                class="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
+              >-</button>
+              <span class="w-12 h-10 flex items-center justify-center text-sm font-semibold border-x border-gray-200">
+                {{ quantity() }}
+              </span>
+              <button
+                (click)="incrementQuantity()"
+                class="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
+              >+</button>
+            </div>
+          </div>
+        }
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+          @if (p.inStock) {
+            <button
+              (click)="addToCart(p)"
+              class="flex-1 px-6 py-4 bg-gradient-to-r from-maroon to-maroon-dark text-white font-semibold
+                     rounded-full shadow-lg shadow-maroon/25 hover:shadow-xl
+                     hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
+            >
+              {{ addedToCart() ? 'Added to Cart!' : 'Add to Cart' }}
+            </button>
+          }
+          <button
+            (click)="inquireWhatsApp(p)"
+            class="flex-1 px-6 py-4 bg-green-500 text-white font-semibold rounded-full shadow-lg
+                   shadow-green-500/25 hover:bg-green-600 hover:-translate-y-0.5
+                   transition-all duration-300 active:scale-95 flex items-center justify-center gap-2"
+          >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+            </svg>
+            Ask on WhatsApp
+          </button>
+        </div>
+
+        <!-- Trust badges -->
+        <div class="grid grid-cols-3 gap-3 pt-4">
+          <div class="text-center p-3 bg-cream rounded-xl">
+            <p class="text-xs font-semibold text-maroon">Free Delivery</p>
+            <p class="text-[10px] text-gray-500">Above ₹999</p>
+          </div>
+          <div class="text-center p-3 bg-cream rounded-xl">
+            <p class="text-xs font-semibold text-maroon">Easy Returns</p>
+            <p class="text-[10px] text-gray-500">7 Day Policy</p>
+          </div>
+          <div class="text-center p-3 bg-cream rounded-xl">
+            <p class="text-xs font-semibold text-maroon">COD Available</p>
+            <p class="text-[10px] text-gray-500">Cash on Delivery</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="text-center py-20">
+      <h2 class="font-heading text-2xl font-bold text-gray-700 mb-2">Product Not Found</h2>
+      <p class="text-gray-500 mb-6">The product you're looking for doesn't exist.</p>
+      <a routerLink="/shop" class="px-6 py-3 bg-maroon text-white rounded-full text-sm font-semibold">
+        Back to Shop
+      </a>
+    </div>
+  }
+</div>

@@ -1,272 +1,496 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 import { ProductService } from '../../core/services/product.service';
 import { CategoryService } from '../../core/services/category.service';
 import { Product } from '../../core/models/product.model';
 import { Category } from '../../core/models/category.model';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader/skeleton-loader.component';
-import { CurrencyInrPipe } from '../../shared/pipes/currency-inr.pipe';
+
+interface CategoryVisual {
+  readonly emoji: string;
+  readonly gradient: string;
+  readonly accent: string;
+  readonly image?: string;
+}
+
+interface CategoryTile {
+  readonly id: string;
+  readonly name: string;
+  readonly nameMarathi?: string;
+  readonly routerLink: string[];
+  readonly queryParams?: Record<string, string>;
+  readonly visual: CategoryVisual;
+  readonly badge?: string;
+  readonly badgeTone?: 'gold' | 'maroon' | 'green';
+}
+
+interface TrustStat {
+  readonly value: string;
+  readonly label: string;
+}
+
+interface Feature {
+  readonly icon: string;
+  readonly title: string;
+  readonly subtitle: string;
+}
+
+interface Occasion {
+  readonly label: string;
+  readonly emoji: string;
+  readonly description: string;
+  readonly tag: string;
+  readonly gradient: string;
+}
+
+interface Reason {
+  readonly icon: string;
+  readonly title: string;
+  readonly description: string;
+  readonly tint: string;
+}
+
+interface Step {
+  readonly number: number;
+  readonly icon: string;
+  readonly title: string;
+  readonly description: string;
+}
+
+interface Testimonial {
+  readonly name: string;
+  readonly initials: string;
+  readonly location: string;
+  readonly quote: string;
+  readonly avatar: string;
+}
+
+interface InstaTile {
+  readonly emoji: string;
+  readonly bg: string;
+}
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, ProductCardComponent, SkeletonLoaderComponent, CurrencyInrPipe],
-  template: `
-    <!-- Hero Section -->
-    <section class="relative min-h-[90vh] flex items-center bg-gradient-to-br from-cream via-white to-cream overflow-hidden">
-      <!-- Decorative elements -->
-      <div class="absolute top-20 right-10 w-72 h-72 bg-gold/5 rounded-full blur-3xl"></div>
-      <div class="absolute bottom-10 left-10 w-96 h-96 bg-maroon/5 rounded-full blur-3xl"></div>
-
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 w-full">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <!-- Left Content -->
-          <div class="text-center lg:text-left space-y-6"
-               style="animation: fadeInUp 0.8s ease-out">
-            <div class="inline-flex items-center gap-2 px-4 py-2 bg-gold/10 rounded-full">
-              <span class="w-2 h-2 bg-gold rounded-full animate-pulse"></span>
-              <span class="text-sm font-medium text-gold-dark">Premium Art Jewellery</span>
-            </div>
-
-            <h1 class="font-heading text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-maroon leading-tight">
-              स्त्रीरत्न
-              <span class="block text-2xl sm:text-3xl lg:text-4xl text-gold mt-2">
-                साज महाराष्ट्राचा
-              </span>
-            </h1>
-
-            <p class="text-base sm:text-lg text-gray-600 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-              Premium 1gm Art Jewellery that looks luxurious, feels lightweight, and fits your budget.
-              Handcrafted with love from Pune, Maharashtra.
-            </p>
-
-            <!-- Story highlight -->
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gold/10 max-w-lg mx-auto lg:mx-0"
-                 style="animation: fadeInUp 1s ease-out">
-              <p class="text-sm text-gray-500 italic">
-                "1000+ messages daily... Our small team couldn't reply to everyone.
-                So we built this platform - so you can browse, choose, and order without waiting."
-              </p>
-              <p class="text-xs text-gold font-semibold mt-2">- Team स्त्रीरत्न</p>
-            </div>
-
-            <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <a routerLink="/shop"
-                 class="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-maroon to-maroon-dark
-                        text-white font-semibold rounded-full shadow-lg shadow-maroon/25
-                        hover:shadow-xl hover:shadow-maroon/30 hover:-translate-y-0.5
-                        transition-all duration-300 active:scale-95">
-                Shop Now
-                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </a>
-              <a routerLink="/about"
-                 class="inline-flex items-center justify-center px-8 py-4 bg-white text-maroon
-                        font-semibold rounded-full border-2 border-maroon/20
-                        hover:border-gold hover:text-gold transition-all duration-300">
-                Our Story
-              </a>
-            </div>
-          </div>
-
-          <!-- Right Visual -->
-          <div class="relative hidden lg:flex items-center justify-center"
-               style="animation: fadeInUp 1.2s ease-out">
-            <div class="w-80 h-80 xl:w-96 xl:h-96 rounded-full bg-gradient-to-br from-gold/20 to-maroon/10
-                        flex items-center justify-center relative">
-              <div class="absolute inset-4 rounded-full border-2 border-dashed border-gold/30 animate-[spin_20s_linear_infinite]"></div>
-              <div class="text-center">
-                <span class="font-heading text-6xl text-maroon/80">स्त्री</span>
-                <p class="text-sm text-gold font-medium mt-2">Since Pune</p>
-              </div>
-            </div>
-            <!-- Floating badges -->
-            <div class="absolute top-8 right-8 bg-white rounded-xl shadow-lg p-3 animate-float">
-              <p class="text-xs font-semibold text-maroon">1gm Gold Look</p>
-            </div>
-            <div class="absolute bottom-12 left-4 bg-white rounded-xl shadow-lg p-3 animate-float"
-                 style="animation-delay: 1s">
-              <p class="text-xs font-semibold text-gold">Affordable Price</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Trust Strip -->
-    <section class="bg-white py-6 border-y border-gray-100">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          @for (stat of trustStats; track stat.label) {
-            <div class="space-y-1">
-              <p class="text-2xl font-bold text-maroon">{{ stat.value }}</p>
-              <p class="text-xs text-gray-500 font-medium">{{ stat.label }}</p>
-            </div>
-          }
-        </div>
-      </div>
-    </section>
-
-    <!-- Categories -->
-    @if (categories().length > 0) {
-      <section class="py-16 lg:py-20 bg-cream">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="text-center mb-12">
-            <p class="text-sm font-semibold text-gold uppercase tracking-wider mb-2">Collections</p>
-            <h2 class="font-heading text-3xl lg:text-4xl font-bold text-maroon">
-              Shop by Category
-            </h2>
-          </div>
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-            @for (category of categories(); track category.id) {
-              <a
-                [routerLink]="['/shop']"
-                [queryParams]="{ category: category.id }"
-                class="group relative overflow-hidden rounded-2xl aspect-square bg-gradient-to-br from-maroon/80 to-maroon
-                       flex items-end p-4 hover:shadow-xl transition-all duration-500"
-              >
-                @if (category.image) {
-                  <img
-                    [src]="category.image"
-                    [alt]="category.name"
-                    class="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-110 transition-transform duration-700"
-                    loading="lazy"
-                  />
-                  <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-                }
-                <div class="relative z-10">
-                  <h3 class="font-heading text-lg font-semibold text-white">{{ category.name }}</h3>
-                  @if (category.nameMarathi) {
-                    <p class="text-xs text-white/70">{{ category.nameMarathi }}</p>
-                  }
-                </div>
-              </a>
-            }
-          </div>
-        </div>
-      </section>
-    }
-
-    <!-- Featured Products -->
-    <section class="py-16 lg:py-20 bg-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-end justify-between mb-12">
-          <div>
-            <p class="text-sm font-semibold text-gold uppercase tracking-wider mb-2">Curated for You</p>
-            <h2 class="font-heading text-3xl lg:text-4xl font-bold text-maroon">
-              Featured Collection
-            </h2>
-          </div>
-          <a routerLink="/shop" class="hidden sm:inline-flex items-center text-sm font-semibold text-maroon
-                                       hover:text-gold transition-colors">
-            View All
-            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
-        </div>
-
-        @if (loading()) {
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-            @for (_ of [1,2,3,4,5,6,7,8]; track $index) {
-              <app-skeleton-loader type="product-card" />
-            }
-          </div>
-        } @else {
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-            @for (product of featuredProducts(); track product.id) {
-              <app-product-card [product]="product" />
-            }
-          </div>
-        }
-
-        <div class="text-center mt-8 sm:hidden">
-          <a routerLink="/shop"
-             class="inline-flex items-center px-6 py-3 bg-maroon text-white rounded-full text-sm font-semibold
-                    hover:bg-maroon-dark transition-colors">
-            View All Products
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <!-- Best Sellers -->
-    @if (bestSellers().length > 0) {
-      <section class="py-16 lg:py-20 bg-cream">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="text-center mb-12">
-            <p class="text-sm font-semibold text-gold uppercase tracking-wider mb-2">Most Loved</p>
-            <h2 class="font-heading text-3xl lg:text-4xl font-bold text-maroon">Best Sellers</h2>
-          </div>
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-            @for (product of bestSellers(); track product.id) {
-              <app-product-card [product]="product" />
-            }
-          </div>
-        </div>
-      </section>
-    }
-
-    <!-- Story Section / CTA -->
-    <section class="py-16 lg:py-24 bg-gradient-to-br from-maroon to-maroon-dark text-white relative overflow-hidden">
-      <div class="absolute top-0 right-0 w-96 h-96 bg-gold/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-        <h2 class="font-heading text-3xl lg:text-5xl font-bold mb-6">
-          From <span class="text-gold">1000+ DMs</span> to Your Doorstep
-        </h2>
-        <p class="text-lg text-white/80 max-w-2xl mx-auto mb-8 leading-relaxed">
-          We were overwhelmed with love from Instagram. Now you can browse our entire collection,
-          choose what you love, and order directly - no waiting for replies.
-        </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <a routerLink="/shop"
-             class="inline-flex items-center justify-center px-8 py-4 bg-gold text-white
-                    font-semibold rounded-full hover:bg-gold-light transition-all duration-300
-                    shadow-lg shadow-gold/25 active:scale-95">
-            Start Shopping
-          </a>
-          <a routerLink="/contact"
-             class="inline-flex items-center justify-center px-8 py-4 bg-white/10 text-white
-                    font-semibold rounded-full border border-white/20
-                    hover:bg-white/20 transition-all duration-300">
-            Get in Touch
-          </a>
-        </div>
-      </div>
-    </section>
-  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CommonModule,
+    RouterLink,
+    FormsModule,
+    ProductCardComponent,
+    SkeletonLoaderComponent,
+  ],
+  templateUrl: './home.component.html',
+  styleUrl: './home.component.scss',
 })
 export class HomeComponent implements OnInit {
-  private productService = inject(ProductService);
-  private categoryService = inject(CategoryService);
+  private readonly productService = inject(ProductService);
+  private readonly categoryService = inject(CategoryService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  featuredProducts = signal<Product[]>([]);
-  bestSellers = signal<Product[]>([]);
-  categories = signal<Category[]>([]);
-  loading = signal(true);
+  readonly featuredProducts = signal<Product[]>([]);
+  readonly bestSellers = signal<Product[]>([]);
+  readonly categories = signal<Category[]>([]);
+  readonly loading = signal(true);
 
-  trustStats = [
+  readonly liveViewers = signal<number>(this.randomBetween(42, 118));
+  readonly subscribed = signal(false);
+  email = '';
+
+  readonly skeletonCount = Array.from({ length: 8 });
+
+  // Premium fallback visuals mapped by normalised category name
+  private readonly categoryVisualMap: ReadonlyMap<string, CategoryVisual> = new Map([
+    ['necklace', {
+      emoji: '📿',
+      gradient: 'linear-gradient(135deg, #800020 0%, #A0334D 55%, #600018 100%)',
+      accent: '#D4AF37',
+      image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=800&q=80',
+    }],
+    ['haar', {
+      emoji: '📿',
+      gradient: 'linear-gradient(135deg, #800020 0%, #A0334D 55%, #600018 100%)',
+      accent: '#D4AF37',
+      image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80',
+    }],
+    ['earring', {
+      emoji: '💎',
+      gradient: 'linear-gradient(135deg, #B8960F 0%, #D4AF37 55%, #800020 100%)',
+      accent: '#ffffff',
+      image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80',
+    }],
+    ['earrings', {
+      emoji: '💎',
+      gradient: 'linear-gradient(135deg, #B8960F 0%, #D4AF37 55%, #800020 100%)',
+      accent: '#ffffff',
+      image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80',
+    }],
+    ['bangle', {
+      emoji: '⚪',
+      gradient: 'linear-gradient(135deg, #A0334D 0%, #D4AF37 100%)',
+      accent: '#ffffff',
+      image: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?auto=format&fit=crop&w=800&q=80',
+    }],
+    ['bangles', {
+      emoji: '⚪',
+      gradient: 'linear-gradient(135deg, #A0334D 0%, #D4AF37 100%)',
+      accent: '#ffffff',
+      image: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?auto=format&fit=crop&w=800&q=80',
+    }],
+    ['bracelet', {
+      emoji: '🔗',
+      gradient: 'linear-gradient(135deg, #600018 0%, #D4AF37 100%)',
+      accent: '#ffffff',
+      image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=800&q=80',
+    }],
+    ['ring', {
+      emoji: '💍',
+      gradient: 'linear-gradient(135deg, #D4AF37 0%, #B8960F 55%, #600018 100%)',
+      accent: '#ffffff',
+      image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80',
+    }],
+    ['rings', {
+      emoji: '💍',
+      gradient: 'linear-gradient(135deg, #D4AF37 0%, #B8960F 55%, #600018 100%)',
+      accent: '#ffffff',
+      image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80',
+    }],
+    ['nath', {
+      emoji: '👑',
+      gradient: 'linear-gradient(135deg, #800020 0%, #D4AF37 100%)',
+      accent: '#ffffff',
+      image: 'https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&w=800&q=80',
+    }],
+    ['mangalsutra', {
+      emoji: '🖤',
+      gradient: 'linear-gradient(135deg, #1a1a1a 0%, #800020 100%)',
+      accent: '#D4AF37',
+      image: 'https://images.unsplash.com/photo-1602751584554-86e5e4e30dc4?auto=format&fit=crop&w=800&q=80',
+    }],
+    ['anklet', {
+      emoji: '🌙',
+      gradient: 'linear-gradient(135deg, #A0334D 0%, #600018 100%)',
+      accent: '#D4AF37',
+      image: 'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=800&q=80',
+    }],
+    ['payal', {
+      emoji: '🌙',
+      gradient: 'linear-gradient(135deg, #A0334D 0%, #600018 100%)',
+      accent: '#D4AF37',
+      image: 'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=800&q=80',
+    }],
+    ['pendant', {
+      emoji: '✨',
+      gradient: 'linear-gradient(135deg, #800020 0%, #B8960F 100%)',
+      accent: '#ffffff',
+      image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80',
+    }],
+    ['set', {
+      emoji: '👑',
+      gradient: 'linear-gradient(135deg, #600018 0%, #D4AF37 100%)',
+      accent: '#ffffff',
+      image: 'https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&w=800&q=80',
+    }],
+  ]);
+
+  private readonly defaultCategoryVisuals: readonly CategoryVisual[] = [
+    {
+      emoji: '💎',
+      gradient: 'linear-gradient(135deg, #800020 0%, #A0334D 55%, #600018 100%)',
+      accent: '#D4AF37',
+      image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80',
+    },
+    {
+      emoji: '✨',
+      gradient: 'linear-gradient(135deg, #B8960F 0%, #D4AF37 55%, #800020 100%)',
+      accent: '#ffffff',
+      image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=800&q=80',
+    },
+    {
+      emoji: '👑',
+      gradient: 'linear-gradient(135deg, #A0334D 0%, #D4AF37 100%)',
+      accent: '#ffffff',
+      image: 'https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&w=800&q=80',
+    },
+  ];
+
+  // Two curated promo tiles always appended after DB categories
+  private readonly promoTiles: readonly CategoryTile[] = [
+    {
+      id: 'promo-new-arrivals',
+      name: 'New Arrivals',
+      nameMarathi: 'नवीन आगमन',
+      routerLink: ['/shop'],
+      queryParams: { sort: 'newest' },
+      badge: 'Just Dropped',
+      badgeTone: 'gold',
+      visual: {
+        emoji: '🌟',
+        gradient: 'linear-gradient(135deg, #D4AF37 0%, #B8960F 50%, #800020 100%)',
+        accent: '#ffffff',
+        image: 'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?auto=format&fit=crop&w=800&q=80',
+      },
+    },
+    {
+      id: 'promo-sale',
+      name: 'Festive Sale',
+      nameMarathi: 'सणाची सूट',
+      routerLink: ['/shop'],
+      queryParams: { sale: 'true' },
+      badge: 'Up to 40% off',
+      badgeTone: 'maroon',
+      visual: {
+        emoji: '🔥',
+        gradient: 'linear-gradient(135deg, #600018 0%, #800020 50%, #D4AF37 100%)',
+        accent: '#ffffff',
+        image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=800&q=80',
+      },
+    },
+  ];
+
+  readonly displayCategories = computed<readonly CategoryTile[]>(() => {
+    const dbTiles: CategoryTile[] = this.categories().map((category, index) => {
+      const key = (category.name || '').trim().toLowerCase();
+      const visualFromMap = this.categoryVisualMap.get(key);
+      const fallback = this.defaultCategoryVisuals[index % this.defaultCategoryVisuals.length];
+      const resolvedVisual: CategoryVisual = {
+        emoji: visualFromMap?.emoji ?? fallback.emoji,
+        gradient: visualFromMap?.gradient ?? fallback.gradient,
+        accent: visualFromMap?.accent ?? fallback.accent,
+        image: category.image || visualFromMap?.image || fallback.image,
+      };
+      return {
+        id: category.id,
+        name: category.name,
+        nameMarathi: category.nameMarathi,
+        routerLink: ['/shop'],
+        queryParams: { category: category.id },
+        visual: resolvedVisual,
+      };
+    });
+    return [...dbTiles, ...this.promoTiles];
+  });
+
+  readonly heroAvatars: readonly string[] = [
+    'linear-gradient(135deg, #D4AF37, #B8960F)',
+    'linear-gradient(135deg, #800020, #A0334D)',
+    'linear-gradient(135deg, #E8CC6E, #D4AF37)',
+    'linear-gradient(135deg, #600018, #800020)',
+  ];
+
+  readonly trustStats: readonly TrustStat[] = [
     { value: '10,000+', label: 'Happy Customers' },
-    { value: '500+', label: 'Designs' },
-    { value: '4.8★', label: 'Average Rating' },
-    { value: 'Pune', label: 'Made in India' },
+    { value: '500+', label: 'Unique Designs' },
+    { value: '4.8★', label: 'Avg Rating' },
+    { value: '48hr', label: 'Dispatch' },
+  ];
+
+  readonly features: readonly Feature[] = [
+    { icon: '🚚', title: 'Free Shipping', subtitle: 'Above ₹999 across India' },
+    { icon: '💰', title: 'Cash on Delivery', subtitle: 'Pay when you receive' },
+    { icon: '🔄', title: 'Easy Returns', subtitle: '7-day hassle-free' },
+    { icon: '✨', title: 'Handcrafted', subtitle: 'Made with love in Pune' },
+  ];
+
+  readonly occasions: readonly Occasion[] = [
+    {
+      label: 'Bridal',
+      emoji: '👰',
+      description: 'Once-in-a-lifetime sparkle',
+      tag: 'bridal',
+      gradient: 'linear-gradient(135deg, #800020 0%, #A0334D 100%)',
+    },
+    {
+      label: 'Festive',
+      emoji: '🪔',
+      description: 'Diwali, Ganpati & more',
+      tag: 'festive',
+      gradient: 'linear-gradient(135deg, #B8960F 0%, #D4AF37 100%)',
+    },
+    {
+      label: 'Daily Wear',
+      emoji: '🌸',
+      description: 'Light, comfy, graceful',
+      tag: 'daily',
+      gradient: 'linear-gradient(135deg, #A0334D 0%, #800020 100%)',
+    },
+    {
+      label: 'Gifting',
+      emoji: '🎁',
+      description: 'For the woman you love',
+      tag: 'gift',
+      gradient: 'linear-gradient(135deg, #D4AF37 0%, #800020 100%)',
+    },
+  ];
+
+  readonly reasons: readonly Reason[] = [
+    {
+      icon: '✨',
+      title: 'Lightweight Luxury',
+      description:
+        'Premium 1gm art jewellery — all the glow of gold, a fraction of the weight (and price).',
+      tint: 'linear-gradient(135deg, #FFF8E7, #F5EDD6)',
+    },
+    {
+      icon: '💛',
+      title: 'Handcrafted in Pune',
+      description:
+        'Every piece is hand-finished by local artisans. No mass production, no compromises.',
+      tint: 'linear-gradient(135deg, #FFE4E6, #FECACA)',
+    },
+    {
+      icon: '🛡️',
+      title: '6-Month Guarantee',
+      description:
+        'We stand behind every piece. Tarnish, bend, or break — we\'ll make it right.',
+      tint: 'linear-gradient(135deg, #DCFCE7, #BBF7D0)',
+    },
+    {
+      icon: '🚀',
+      title: 'Ships in 48 hours',
+      description:
+        'Ready stock. Orders leave Pune within 2 business days to any corner of India.',
+      tint: 'linear-gradient(135deg, #E0E7FF, #C7D2FE)',
+    },
+    {
+      icon: '💬',
+      title: 'Real Human Support',
+      description:
+        'WhatsApp us any time. Styling advice, size help, or just a friendly chat — we\'re here.',
+      tint: 'linear-gradient(135deg, #CFFAFE, #A5F3FC)',
+    },
+    {
+      icon: '💎',
+      title: 'Starts at ₹299',
+      description:
+        'Luxury jewellery shouldn\'t break the bank. Pieces for every budget, every occasion.',
+      tint: 'linear-gradient(135deg, #FEF3C7, #FDE68A)',
+    },
+  ];
+
+  readonly steps: readonly Step[] = [
+    {
+      number: 1,
+      icon: '🛍️',
+      title: 'Browse',
+      description: 'Explore 500+ handcrafted designs across every occasion.',
+    },
+    {
+      number: 2,
+      icon: '💖',
+      title: 'Choose',
+      description: 'Add to cart. Save to wishlist. Take your sweet time.',
+    },
+    {
+      number: 3,
+      icon: '💳',
+      title: 'Checkout',
+      description: 'UPI, cards, or Cash on Delivery. Fast and secure.',
+    },
+    {
+      number: 4,
+      icon: '📦',
+      title: 'Unbox Joy',
+      description: 'Lovingly packaged and at your door in 2–5 days.',
+    },
+  ];
+
+  readonly testimonials: readonly Testimonial[] = [
+    {
+      name: 'Priya S.',
+      initials: 'PS',
+      location: 'Mumbai, Maharashtra',
+      quote:
+        'Wore the Maharani necklace to my cousin\'s wedding — everyone asked where it was from! Genuinely premium quality for the price.',
+      avatar: 'linear-gradient(135deg, #800020, #A0334D)',
+    },
+    {
+      name: 'Anjali K.',
+      initials: 'AK',
+      location: 'Pune, Maharashtra',
+      quote:
+        'I order from स्त्रीरत्न every festival. The designs are unique, delivery is quick, and the team replies so sweetly on WhatsApp. My go-to.',
+      avatar: 'linear-gradient(135deg, #D4AF37, #B8960F)',
+    },
+    {
+      name: 'Rukmini D.',
+      initials: 'RD',
+      location: 'Nagpur, Maharashtra',
+      quote:
+        'Gifted the Nath to my daughter-in-law. She cried happy tears. Beautiful craftsmanship — feels truly Maharashtrian.',
+      avatar: 'linear-gradient(135deg, #600018, #800020)',
+    },
+  ];
+
+  readonly instagramTiles: readonly InstaTile[] = [
+    { emoji: '💎', bg: 'linear-gradient(135deg, #800020, #A0334D)' },
+    { emoji: '👑', bg: 'linear-gradient(135deg, #D4AF37, #B8960F)' },
+    { emoji: '🌸', bg: 'linear-gradient(135deg, #A0334D, #600018)' },
+    { emoji: '✨', bg: 'linear-gradient(135deg, #B8960F, #800020)' },
+    { emoji: '🪔', bg: 'linear-gradient(135deg, #800020, #D4AF37)' },
+    { emoji: '💖', bg: 'linear-gradient(135deg, #A0334D, #D4AF37)' },
   ];
 
   ngOnInit(): void {
-    this.productService.getFeaturedProducts().subscribe((products) => {
-      this.featuredProducts.set(products);
-      this.loading.set(false);
-    });
+    this.loadProducts();
+    this.loadCategories();
+    this.simulateLiveViewers();
+  }
 
-    this.productService.getBestSellers().subscribe((products) => {
-      this.bestSellers.set(products);
-    });
+  subscribe(event: Event): void {
+    event.preventDefault();
+    if (!this.email.trim()) return;
+    this.subscribed.set(true);
+    this.email = '';
+  }
 
-    this.categoryService.getActiveCategories().subscribe((categories) => {
-      this.categories.set(categories);
-    });
+  private loadProducts(): void {
+    this.productService
+      .getFeaturedProducts()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (products) => {
+          this.featuredProducts.set(products);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
+
+    this.productService
+      .getBestSellers()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((products) => this.bestSellers.set(products));
+  }
+
+  private loadCategories(): void {
+    this.categoryService
+      .getActiveCategories()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((categories) => this.categories.set(categories));
+  }
+
+  private simulateLiveViewers(): void {
+    const interval = setInterval(() => {
+      this.liveViewers.set(this.randomBetween(42, 118));
+    }, 6000);
+    this.destroyRef.onDestroy(() => clearInterval(interval));
+  }
+
+  private randomBetween(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 }

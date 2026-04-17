@@ -1,242 +1,73 @@
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { CartService } from '../../core/services/cart.service';
 import { OrderService } from '../../core/services/order.service';
 import { WhatsappService } from '../../core/services/whatsapp.service';
 import { CurrencyInrPipe } from '../../shared/pipes/currency-inr.pipe';
 
+const FREE_DELIVERY_THRESHOLD = 999;
+const DELIVERY_CHARGE = 99;
+
+type PaymentMethod = 'whatsapp' | 'cod';
+
+interface CheckoutForm {
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+  city: string;
+  pincode: string;
+  paymentMethod: PaymentMethod;
+  notes: string;
+}
+
+const EMPTY_FORM: CheckoutForm = {
+  name: '',
+  phone: '',
+  email: '',
+  address: '',
+  city: '',
+  pincode: '',
+  paymentMethod: 'whatsapp',
+  notes: '',
+};
+
 @Component({
   selector: 'app-checkout',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, RouterLink, CurrencyInrPipe],
-  template: `
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-      <h1 class="font-heading text-2xl lg:text-4xl font-bold text-maroon mb-8">Checkout</h1>
-
-      @if (cartService.isEmpty()) {
-        <div class="text-center py-20">
-          <h2 class="font-heading text-xl font-semibold text-gray-700 mb-2">No items to checkout</h2>
-          <a routerLink="/shop" class="inline-flex items-center px-6 py-3 bg-maroon text-white rounded-full text-sm font-semibold mt-4">
-            Continue Shopping
-          </a>
-        </div>
-      } @else if (orderPlaced()) {
-        <div class="text-center py-20 max-w-lg mx-auto">
-          <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
-            <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h2 class="font-heading text-2xl font-bold text-gray-900 mb-2">Order Placed Successfully!</h2>
-          <p class="text-gray-500 mb-6">Thank you for your order. We've sent your order details via WhatsApp.</p>
-          <a routerLink="/shop" class="inline-flex items-center px-6 py-3 bg-maroon text-white rounded-full text-sm font-semibold">
-            Continue Shopping
-          </a>
-        </div>
-      } @else {
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <!-- Form -->
-          <div class="lg:col-span-2">
-            <form (ngSubmit)="placeOrder()" class="space-y-6">
-              <!-- Contact Details -->
-              <div class="bg-white rounded-2xl p-6 shadow-sm space-y-4">
-                <h3 class="font-heading text-lg font-semibold text-gray-900">Contact Details</h3>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
-                    <input type="text" [(ngModel)]="form.name" name="name" required
-                      class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm
-                             focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold"
-                      placeholder="Your full name" />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
-                    <input type="tel" [(ngModel)]="form.phone" name="phone" required
-                      class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm
-                             focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold"
-                      placeholder="10-digit mobile number" />
-                  </div>
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Email (Optional)</label>
-                  <input type="email" [(ngModel)]="form.email" name="email"
-                    class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm
-                           focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold"
-                    placeholder="your@email.com" />
-                </div>
-              </div>
-
-              <!-- Shipping Address -->
-              <div class="bg-white rounded-2xl p-6 shadow-sm space-y-4">
-                <h3 class="font-heading text-lg font-semibold text-gray-900">Shipping Address</h3>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Address *</label>
-                  <textarea [(ngModel)]="form.address" name="address" required rows="3"
-                    class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm resize-none
-                           focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold"
-                    placeholder="House/Flat number, Building, Street"></textarea>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">City *</label>
-                    <input type="text" [(ngModel)]="form.city" name="city" required
-                      class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm
-                             focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold"
-                      placeholder="City" />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Pincode *</label>
-                    <input type="text" [(ngModel)]="form.pincode" name="pincode" required
-                      class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm
-                             focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold"
-                      placeholder="6-digit pincode" />
-                  </div>
-                </div>
-              </div>
-
-              <!-- Payment Method -->
-              <div class="bg-white rounded-2xl p-6 shadow-sm space-y-4">
-                <h3 class="font-heading text-lg font-semibold text-gray-900">Payment Method</h3>
-
-                <div class="space-y-3">
-                  <label class="flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all"
-                    [class]="form.paymentMethod === 'whatsapp' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'">
-                    <input type="radio" name="payment" value="whatsapp"
-                           [(ngModel)]="form.paymentMethod"
-                           class="w-4 h-4 text-green-500" />
-                    <div class="flex-1">
-                      <p class="text-sm font-semibold text-gray-900">Order via WhatsApp</p>
-                      <p class="text-xs text-gray-500">Confirm your order on WhatsApp</p>
-                    </div>
-                    <svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                    </svg>
-                  </label>
-
-                  <label class="flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all"
-                    [class]="form.paymentMethod === 'cod' ? 'border-gold bg-gold/5' : 'border-gray-200 hover:border-gray-300'">
-                    <input type="radio" name="payment" value="cod"
-                           [(ngModel)]="form.paymentMethod"
-                           class="w-4 h-4 text-gold" />
-                    <div class="flex-1">
-                      <p class="text-sm font-semibold text-gray-900">Cash on Delivery</p>
-                      <p class="text-xs text-gray-500">Pay when you receive your order</p>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              <!-- Notes -->
-              <div class="bg-white rounded-2xl p-6 shadow-sm">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Order Notes (Optional)</label>
-                <textarea [(ngModel)]="form.notes" name="notes" rows="2"
-                  class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm resize-none
-                         focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold"
-                  placeholder="Any special instructions..."></textarea>
-              </div>
-
-              <!-- Submit (mobile) -->
-              <button type="submit" [disabled]="submitting()"
-                class="lg:hidden w-full px-6 py-4 bg-gradient-to-r from-maroon to-maroon-dark text-white
-                       font-semibold rounded-full shadow-lg disabled:opacity-50 active:scale-95 transition-all">
-                {{ submitting() ? 'Placing Order...' : 'Place Order' }}
-              </button>
-            </form>
-          </div>
-
-          <!-- Order Summary Sidebar -->
-          <div class="lg:col-span-1">
-            <div class="bg-white rounded-2xl p-6 shadow-sm sticky top-24 space-y-4">
-              <h3 class="font-heading text-lg font-semibold text-gray-900">Order Summary</h3>
-
-              <div class="space-y-3 max-h-60 overflow-y-auto">
-                @for (item of cartService.items(); track item.productId) {
-                  <div class="flex gap-3">
-                    <img [src]="item.image" [alt]="item.name"
-                         class="w-14 h-14 rounded-lg object-cover" />
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium text-gray-900 truncate">{{ item.name }}</p>
-                      <p class="text-xs text-gray-500">Qty: {{ item.quantity }}</p>
-                    </div>
-                    <p class="text-sm font-semibold text-gray-900 shrink-0">
-                      {{ item.price * item.quantity | inr }}
-                    </p>
-                  </div>
-                }
-              </div>
-
-              <hr class="border-gray-100" />
-
-              <div class="space-y-2">
-                <div class="flex justify-between text-sm">
-                  <span class="text-gray-500">Subtotal</span>
-                  <span>{{ cartService.totalAmount() | inr }}</span>
-                </div>
-                <div class="flex justify-between text-sm">
-                  <span class="text-gray-500">Delivery</span>
-                  <span class="text-green-600">
-                    {{ cartService.totalAmount() >= 999 ? 'FREE' : '₹99' }}
-                  </span>
-                </div>
-                <hr class="border-gray-100" />
-                <div class="flex justify-between text-base font-bold">
-                  <span>Total</span>
-                  <span class="text-maroon">
-                    {{ (cartService.totalAmount() >= 999 ? cartService.totalAmount() : cartService.totalAmount() + 99) | inr }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Submit (desktop) -->
-              <button (click)="placeOrder()" [disabled]="submitting()"
-                class="hidden lg:block w-full px-6 py-4 bg-gradient-to-r from-maroon to-maroon-dark text-white
-                       font-semibold rounded-full shadow-lg disabled:opacity-50 active:scale-95 transition-all">
-                {{ submitting() ? 'Placing Order...' : 'Place Order' }}
-              </button>
-            </div>
-          </div>
-        </div>
-      }
-    </div>
-  `,
+  templateUrl: './checkout.component.html',
 })
 export class CheckoutComponent {
-  cartService = inject(CartService);
-  private orderService = inject(OrderService);
-  private whatsappService = inject(WhatsappService);
-  private router = inject(Router);
+  private readonly cartService = inject(CartService);
+  private readonly orderService = inject(OrderService);
+  private readonly whatsappService = inject(WhatsappService);
 
-  submitting = signal(false);
-  orderPlaced = signal(false);
+  readonly items = this.cartService.items;
+  readonly isEmpty = this.cartService.isEmpty;
+  readonly subtotal = this.cartService.totalAmount;
 
-  form = {
-    name: '',
-    phone: '',
-    email: '',
-    address: '',
-    city: '',
-    pincode: '',
-    paymentMethod: 'whatsapp' as 'whatsapp' | 'cod',
-    notes: '',
-  };
+  readonly hasFreeDelivery = computed(() => this.subtotal() >= FREE_DELIVERY_THRESHOLD);
+  readonly total = computed(() => this.subtotal() + (this.hasFreeDelivery() ? 0 : DELIVERY_CHARGE));
+  readonly deliveryLabel = `₹${DELIVERY_CHARGE}`;
+
+  readonly submitting = signal(false);
+  readonly orderPlaced = signal(false);
+
+  form: CheckoutForm = { ...EMPTY_FORM };
 
   async placeOrder(): Promise<void> {
-    if (!this.form.name || !this.form.phone || !this.form.address || !this.form.city || !this.form.pincode) {
-      return;
-    }
+    const { name, phone, address, city, pincode } = this.form;
+    if (!name || !phone || !address || !city || !pincode) return;
 
     this.submitting.set(true);
 
     try {
       const items = this.cartService.items();
-      const total = this.cartService.totalAmount();
-      const deliveryCharge = total >= 999 ? 0 : 99;
+      const total = this.total();
 
       await this.orderService.createOrder({
         items: items.map((i) => ({
@@ -246,7 +77,7 @@ export class CheckoutComponent {
           price: i.price,
           quantity: i.quantity,
         })),
-        totalAmount: total + deliveryCharge,
+        totalAmount: total,
         customerName: this.form.name,
         customerPhone: this.form.phone,
         customerEmail: this.form.email || undefined,
@@ -262,7 +93,7 @@ export class CheckoutComponent {
 
       if (this.form.paymentMethod === 'whatsapp') {
         const fullAddress = `${this.form.address}, ${this.form.city} - ${this.form.pincode}`;
-        this.whatsappService.sendOrder(items, this.form.name, fullAddress, total + deliveryCharge);
+        this.whatsappService.sendOrder(items, this.form.name, fullAddress, total);
       }
 
       this.cartService.clearCart();

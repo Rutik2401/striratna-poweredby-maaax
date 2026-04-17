@@ -1,0 +1,649 @@
+<!-- ==================== HERO ==================== -->
+<section class="hero relative overflow-hidden bg-gradient-to-br from-cream via-white to-cream">
+  <div class="hero__glow hero__glow--gold"></div>
+  <div class="hero__glow hero__glow--maroon"></div>
+  <div class="hero__grain"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 w-full relative">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+
+      <!-- Left copy -->
+      <div class="lg:col-span-6 text-center lg:text-left space-y-6 hero__copy">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/70 backdrop-blur-md
+                    border border-gold/20 rounded-full shadow-sm">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-gold"></span>
+          </span>
+          <span class="text-xs font-semibold text-gold-dark tracking-wide uppercase">Premium Art Jewellery · Made in Pune</span>
+        </div>
+
+        <h1 class="font-heading font-bold text-maroon leading-[1.05]
+                   text-5xl sm:text-6xl lg:text-7xl xl:text-[5.5rem]">
+          स्त्रीरत्न
+          <span class="block mt-3 text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-gold font-medium tracking-wide">
+            साज महाराष्ट्राचा
+          </span>
+        </h1>
+
+        <p class="text-base sm:text-lg text-gray-600 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+          Luxury <span class="text-maroon font-semibold">1gm gold-look</span> jewellery —
+          feather-light, budget-friendly, and handcrafted with stories. Browse, love, and
+          own it in a few taps.
+        </p>
+
+        <!-- Inline rating proof -->
+        <div class="flex items-center gap-4 justify-center lg:justify-start">
+          <div class="flex -space-x-2">
+            @for (avatar of heroAvatars; track $index) {
+              <div class="w-9 h-9 rounded-full border-2 border-white shadow-sm"
+                   [style.background]="avatar"></div>
+            }
+          </div>
+          <div class="text-left">
+            <div class="flex items-center gap-1 text-gold">
+              @for (_ of [1,2,3,4,5]; track $index) {
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              }
+            </div>
+            <p class="text-xs text-gray-500 font-medium">4.8 from 10,000+ happy women</p>
+          </div>
+        </div>
+
+        <!-- CTAs -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start pt-2">
+          <a routerLink="/shop"
+             class="btn-primary group">
+            <span>Explore Collection</span>
+            <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+            </svg>
+          </a>
+          <a routerLink="/about" class="btn-ghost">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Our Story</span>
+          </a>
+        </div>
+
+        <!-- Mini trust row -->
+        <div class="flex items-center gap-5 justify-center lg:justify-start pt-4 text-xs text-gray-500">
+          <div class="flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Free Shipping</span>
+          </div>
+          <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
+          <div class="flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>48-hr Dispatch</span>
+          </div>
+          <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
+          <div class="flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/>
+            </svg>
+            <span>COD Available</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right visual: layered card mosaic -->
+      <div class="lg:col-span-6 relative hero__visual">
+        <div class="relative w-full aspect-square max-w-[560px] mx-auto">
+          <!-- Concentric decorative rings -->
+          <div class="absolute inset-0 rounded-[40%] bg-gradient-to-br from-gold/15 via-cream to-maroon/10 hero__blob"></div>
+          <div class="absolute inset-8 rounded-full border-2 border-dashed border-gold/30 hero__ring"></div>
+
+          <!-- Center monogram card -->
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-white/80 backdrop-blur-md
+                        shadow-[0_20px_60px_-15px_rgba(128,0,32,0.25)] border border-white
+                        flex flex-col items-center justify-center">
+              <span class="font-heading text-5xl sm:text-6xl text-maroon">स्त्री</span>
+              <p class="text-[11px] text-gold font-semibold tracking-[0.3em] mt-2 uppercase">Pune · Est.</p>
+            </div>
+          </div>
+
+          <!-- Floating badge: top-right -->
+          <div class="absolute top-4 right-0 sm:right-4 bg-white rounded-2xl shadow-xl p-3.5 hero__badge hero__badge--1">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-full bg-gold/10 flex items-center justify-center">
+                <svg class="w-5 h-5 text-gold" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Premium Finish</p>
+                <p class="text-sm font-bold text-maroon">1gm Gold Look</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating badge: bottom-left -->
+          <div class="absolute bottom-6 left-0 sm:left-2 bg-white rounded-2xl shadow-xl p-3.5 hero__badge hero__badge--2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Starts at</p>
+                <p class="text-sm font-bold text-maroon">₹299 only</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating badge: mid-left live indicator -->
+          <div class="absolute top-1/2 -left-2 sm:left-0 -translate-y-1/2 bg-maroon text-white rounded-full shadow-xl px-3 py-2 hero__badge hero__badge--3">
+            <div class="flex items-center gap-2">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-gold"></span>
+              </span>
+              <p class="text-[11px] font-semibold">{{ liveViewers() }} shopping now</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wave divider -->
+  <div class="absolute bottom-0 left-0 right-0 pointer-events-none">
+    <svg viewBox="0 0 1440 80" class="w-full h-12 md:h-16" preserveAspectRatio="none">
+      <path d="M0,48 C360,96 720,0 1080,32 C1260,48 1380,32 1440,16 L1440,80 L0,80 Z" fill="#ffffff"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ==================== VALUE STRIP ==================== -->
+<section class="bg-white py-6 border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+      @for (feature of features; track feature.title) {
+        <div class="flex items-center gap-3 md:gap-4 p-3 rounded-xl hover:bg-cream transition-colors">
+          <div class="w-11 h-11 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-gold/10 to-maroon/5
+                      flex items-center justify-center flex-shrink-0">
+            <span class="text-xl" [innerHTML]="feature.icon"></span>
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm font-bold text-maroon truncate">{{ feature.title }}</p>
+            <p class="text-[11px] md:text-xs text-gray-500 truncate">{{ feature.subtitle }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TRUST STATS ==================== -->
+<section class="bg-gradient-to-b from-white to-cream py-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      @for (stat of trustStats; track stat.label) {
+        <div class="space-y-1 stat-card">
+          <p class="font-heading text-3xl md:text-4xl font-bold text-maroon">{{ stat.value }}</p>
+          <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider">{{ stat.label }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CATEGORIES ==================== -->
+@if (displayCategories().length > 0) {
+  <section class="py-16 lg:py-20 bg-cream">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-end justify-between mb-10">
+        <div>
+          <p class="text-xs font-bold text-gold uppercase tracking-[0.25em] mb-2">Collections</p>
+          <h2 class="font-heading text-3xl lg:text-4xl font-bold text-maroon">
+            Shop by Category
+          </h2>
+          <p class="text-sm text-gray-500 mt-2 max-w-md">
+            Handpicked for every moment — from mangalsutra to maang tikka.
+          </p>
+        </div>
+        <a routerLink="/shop" class="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-maroon
+                                     hover:text-gold transition-colors">
+          See all
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+        @for (tile of displayCategories(); track tile.id) {
+          <a
+            [routerLink]="tile.routerLink"
+            [queryParams]="tile.queryParams"
+            class="cat-tile group"
+          >
+            <!-- Base gradient layer -->
+            <div class="cat-tile__gradient" [style.background]="tile.visual.gradient"></div>
+
+            <!-- Premium image layer (blends with gradient) -->
+            @if (tile.visual.image) {
+              <img
+                [src]="tile.visual.image"
+                [alt]="tile.name"
+                class="cat-tile__img"
+                loading="lazy"
+                decoding="async"
+              />
+            }
+
+            <!-- Decorative pattern overlay -->
+            <div class="cat-tile__pattern"></div>
+
+            <!-- Dark gradient for text readability -->
+            <div class="cat-tile__shade"></div>
+
+            <!-- Big decorative emoji (premium watermark) -->
+            <span class="cat-tile__emoji" aria-hidden="true">{{ tile.visual.emoji }}</span>
+
+            <!-- Optional top badge -->
+            @if (tile.badge) {
+              <span class="cat-tile__badge"
+                    [class.cat-tile__badge--gold]="tile.badgeTone === 'gold'"
+                    [class.cat-tile__badge--maroon]="tile.badgeTone === 'maroon'"
+                    [class.cat-tile__badge--green]="tile.badgeTone === 'green'">
+                {{ tile.badge }}
+              </span>
+            }
+
+            <!-- Shine sweep on hover -->
+            <div class="cat-tile__shine"></div>
+
+            <!-- Content -->
+            <div class="cat-tile__content">
+              <h3 class="font-heading text-lg lg:text-xl font-bold text-white drop-shadow-sm leading-tight">
+                {{ tile.name }}
+              </h3>
+              @if (tile.nameMarathi) {
+                <p class="text-xs text-white/80 mt-0.5">{{ tile.nameMarathi }}</p>
+              }
+              <span class="cat-tile__cta">
+                Shop now
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                </svg>
+              </span>
+            </div>
+          </a>
+        }
+      </div>
+    </div>
+  </section>
+}
+
+<!-- ==================== SHOP BY OCCASION ==================== -->
+<section class="py-16 lg:py-20 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-12">
+      <p class="text-xs font-bold text-gold uppercase tracking-[0.25em] mb-2">Find Your Vibe</p>
+      <h2 class="font-heading text-3xl lg:text-4xl font-bold text-maroon">
+        Shop by Occasion
+      </h2>
+      <p class="text-sm text-gray-500 mt-3 max-w-md mx-auto">
+        From everyday grace to once-in-a-lifetime moments — we have the perfect piece.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+      @for (occasion of occasions; track occasion.label) {
+        <a [routerLink]="['/shop']"
+           [queryParams]="{ tag: occasion.tag }"
+           class="occasion-card group">
+          <div class="occasion-card__bg" [style.background]="occasion.gradient"></div>
+          <div class="occasion-card__content">
+            <div class="occasion-card__icon">
+              <span class="text-3xl">{{ occasion.emoji }}</span>
+            </div>
+            <h3 class="font-heading text-xl font-bold text-white drop-shadow-sm">{{ occasion.label }}</h3>
+            <p class="text-xs text-white/80 mt-1">{{ occasion.description }}</p>
+            <span class="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-white bg-white/20
+                         backdrop-blur-sm px-3 py-1.5 rounded-full">
+              Explore
+              <svg class="w-3 h-3 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+              </svg>
+            </span>
+          </div>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FEATURED ==================== -->
+<section class="py-16 lg:py-20 bg-cream">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-end justify-between mb-10">
+      <div>
+        <p class="text-xs font-bold text-gold uppercase tracking-[0.25em] mb-2">Curated for You</p>
+        <h2 class="font-heading text-3xl lg:text-4xl font-bold text-maroon">
+          Featured Collection
+        </h2>
+      </div>
+      <a routerLink="/shop" class="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-maroon
+                                   hover:text-gold transition-colors">
+        View all
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+
+    @if (loading()) {
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+        @for (_ of skeletonCount; track $index) {
+          <app-skeleton-loader type="product-card" />
+        }
+      </div>
+    } @else if (featuredProducts().length === 0) {
+      <div class="text-center py-12">
+        <p class="text-gray-500">New collection coming soon ✨</p>
+      </div>
+    } @else {
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+        @for (product of featuredProducts(); track product.id) {
+          <app-product-card [product]="product" />
+        }
+      </div>
+    }
+
+    <div class="text-center mt-10 sm:hidden">
+      <a routerLink="/shop" class="btn-primary">
+        View all products
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== WHY CHOOSE US ==================== -->
+<section class="py-16 lg:py-24 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-14">
+      <p class="text-xs font-bold text-gold uppercase tracking-[0.25em] mb-2">Why स्त्रीरत्न</p>
+      <h2 class="font-heading text-3xl lg:text-5xl font-bold text-maroon max-w-3xl mx-auto leading-tight">
+        Luxury You Can Wear
+        <span class="text-gold">Every Single Day</span>
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+      @for (reason of reasons; track reason.title) {
+        <div class="reason-card group">
+          <div class="reason-card__icon" [style.background]="reason.tint">
+            <span class="text-2xl">{{ reason.icon }}</span>
+          </div>
+          <h3 class="font-heading text-xl font-bold text-maroon mb-2">{{ reason.title }}</h3>
+          <p class="text-sm text-gray-600 leading-relaxed">{{ reason.description }}</p>
+          <div class="reason-card__arrow">
+            <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+            </svg>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ==================== HOW IT WORKS ==================== -->
+<section class="py-16 lg:py-20 bg-gradient-to-b from-cream to-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-14">
+      <p class="text-xs font-bold text-gold uppercase tracking-[0.25em] mb-2">Simple · Fast · Reliable</p>
+      <h2 class="font-heading text-3xl lg:text-4xl font-bold text-maroon">
+        Your Order in 4 Taps
+      </h2>
+    </div>
+
+    <div class="relative">
+      <!-- Connecting line -->
+      <div class="hidden lg:block absolute top-12 left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-transparent via-gold/40 to-transparent"></div>
+
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 relative">
+        @for (step of steps; track step.number) {
+          <div class="text-center step-card">
+            <div class="relative inline-block mb-4">
+              <div class="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-white border-2 border-gold/20
+                          shadow-lg shadow-maroon/5 flex items-center justify-center mx-auto">
+                <span class="text-3xl lg:text-4xl">{{ step.icon }}</span>
+              </div>
+              <div class="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-maroon text-white
+                          flex items-center justify-center text-xs font-bold shadow-md">
+                {{ step.number }}
+              </div>
+            </div>
+            <h3 class="font-heading text-base lg:text-lg font-bold text-maroon mb-1">{{ step.title }}</h3>
+            <p class="text-xs lg:text-sm text-gray-500 max-w-[200px] mx-auto leading-relaxed">{{ step.description }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== BEST SELLERS ==================== -->
+@if (bestSellers().length > 0) {
+  <section class="py-16 lg:py-20 bg-cream">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-end justify-between mb-10">
+        <div>
+          <p class="text-xs font-bold text-gold uppercase tracking-[0.25em] mb-2 flex items-center gap-2">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            Most Loved
+          </p>
+          <h2 class="font-heading text-3xl lg:text-4xl font-bold text-maroon">Best Sellers</h2>
+        </div>
+        <a routerLink="/shop" class="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-maroon
+                                     hover:text-gold transition-colors">
+          See all
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+        @for (product of bestSellers(); track product.id) {
+          <app-product-card [product]="product" />
+        }
+      </div>
+    </div>
+  </section>
+}
+
+<!-- ==================== TESTIMONIALS ==================== -->
+<section class="py-16 lg:py-24 bg-white relative overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none opacity-40">
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-gold/5 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-maroon/5 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+    <div class="text-center mb-14">
+      <p class="text-xs font-bold text-gold uppercase tracking-[0.25em] mb-2">Love Letters</p>
+      <h2 class="font-heading text-3xl lg:text-4xl font-bold text-maroon">
+        Words from our Pariwar
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
+      @for (testimonial of testimonials; track testimonial.name) {
+        <figure class="testimonial-card">
+          <svg class="w-8 h-8 text-gold/40 mb-3" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+          </svg>
+          <blockquote class="text-sm lg:text-[15px] text-gray-700 leading-relaxed italic">
+            {{ testimonial.quote }}
+          </blockquote>
+          <figcaption class="mt-5 flex items-center gap-3 pt-5 border-t border-gray-100">
+            <div class="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm
+                        flex-shrink-0"
+                 [style.background]="testimonial.avatar">
+              {{ testimonial.initials }}
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-bold text-maroon truncate">{{ testimonial.name }}</p>
+              <p class="text-xs text-gray-500 truncate">{{ testimonial.location }}</p>
+            </div>
+            <div class="flex items-center gap-0.5 text-gold flex-shrink-0">
+              @for (_ of [1,2,3,4,5]; track $index) {
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              }
+            </div>
+          </figcaption>
+        </figure>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ==================== INSTAGRAM ==================== -->
+<section class="py-16 lg:py-20 bg-cream">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-10 gap-4">
+      <div>
+        <p class="text-xs font-bold text-gold uppercase tracking-[0.25em] mb-2">&#64;striratna</p>
+        <h2 class="font-heading text-3xl lg:text-4xl font-bold text-maroon">
+          Join our Instagram Pariwar
+        </h2>
+        <p class="text-sm text-gray-500 mt-2">Daily inspiration, behind-the-scenes, and exclusive drops.</p>
+      </div>
+      <a href="https://instagram.com" target="_blank" rel="noopener"
+         class="btn-ghost self-start md:self-auto">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2.163c3.204 0 3.584.012 4.849.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.849.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+        </svg>
+        Follow &#64;striratna
+      </a>
+    </div>
+
+    <div class="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
+      @for (tile of instagramTiles; track $index) {
+        <a href="https://instagram.com" target="_blank" rel="noopener"
+           class="insta-tile group"
+           [style.background]="tile.bg">
+          <span class="insta-tile__emoji">{{ tile.emoji }}</span>
+          <div class="insta-tile__overlay">
+            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2.163c3.204 0 3.584.012 4.849.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.849.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/>
+            </svg>
+          </div>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOUNDER STORY CTA ==================== -->
+<section class="py-16 lg:py-24 bg-gradient-to-br from-maroon via-maroon-dark to-maroon text-white relative overflow-hidden">
+  <div class="absolute top-0 right-0 w-96 h-96 bg-gold/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+  <div class="absolute bottom-0 left-0 w-96 h-96 bg-gold/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+  <div class="absolute inset-0 opacity-[0.03] cta-pattern"></div>
+
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-sm
+                border border-white/20 rounded-full mb-6">
+      <span class="text-xs font-semibold uppercase tracking-wider">Our Story</span>
+    </div>
+
+    <h2 class="font-heading text-3xl lg:text-5xl font-bold mb-6 leading-tight">
+      From <span class="text-gold">1,000+ DMs</span> a day
+      <br/>to your doorstep.
+    </h2>
+    <p class="text-base lg:text-lg text-white/80 max-w-2xl mx-auto mb-8 leading-relaxed">
+      We were overwhelmed with love from Instagram. So we built this platform —
+      so you can browse our entire collection, choose what you love, and order directly.
+      No waiting. No DMs. Just jewellery.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a routerLink="/shop" class="btn-gold">
+        Start Shopping
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+        </svg>
+      </a>
+      <a routerLink="/contact"
+         class="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white/10 text-white
+                font-semibold rounded-full border border-white/20 backdrop-blur-sm
+                hover:bg-white/20 transition-all duration-300">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+        Message Us
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== NEWSLETTER ==================== -->
+<section class="py-12 lg:py-16 bg-cream">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="relative bg-white rounded-3xl p-8 md:p-12 shadow-xl shadow-maroon/5
+                border border-gold/10 overflow-hidden">
+      <div class="absolute top-0 right-0 w-40 h-40 bg-gold/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+      <div class="absolute bottom-0 left-0 w-40 h-40 bg-maroon/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+
+      <div class="relative grid grid-cols-1 md:grid-cols-5 gap-6 items-center">
+        <div class="md:col-span-3">
+          <p class="text-xs font-bold text-gold uppercase tracking-[0.25em] mb-2">Join Pariwar</p>
+          <h3 class="font-heading text-2xl md:text-3xl font-bold text-maroon mb-2">
+            Get <span class="text-gold">10% off</span> your first order
+          </h3>
+          <p class="text-sm text-gray-600">
+            New arrivals · Style tips · Early access. No spam, pinky promise.
+          </p>
+        </div>
+        <form class="md:col-span-2 flex flex-col gap-2" (submit)="subscribe($event)">
+          <div class="relative">
+            <input type="email"
+                   [(ngModel)]="email"
+                   name="email"
+                   required
+                   placeholder="you@example.com"
+                   class="w-full px-4 py-3.5 rounded-full border border-gray-200 bg-white text-sm
+                          focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20
+                          transition-all"/>
+          </div>
+          <button type="submit"
+                  class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r
+                         from-maroon to-maroon-dark text-white font-semibold rounded-full
+                         shadow-lg shadow-maroon/20 hover:shadow-xl hover:-translate-y-0.5
+                         transition-all active:scale-95">
+            @if (subscribed()) {
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Subscribed!</span>
+            } @else {
+              <span>Claim 10% off</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+              </svg>
+            }
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>

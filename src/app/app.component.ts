@@ -10,20 +10,7 @@ import { filter, map } from 'rxjs';
   selector: 'app-root',
   standalone: true,
   imports: [CommonModule, RouterOutlet, NavbarComponent, FooterComponent, WhatsappFabComponent],
-  template: `
-    @if (!isAdminRoute) {
-      <app-navbar />
-    }
-
-    <main class="min-h-screen">
-      <router-outlet></router-outlet>
-    </main>
-
-    @if (!isAdminRoute) {
-      <app-footer />
-      <app-whatsapp-fab />
-    }
-  `,
+  templateUrl: './app.component.html',
 })
 export class AppComponent {
   title = 'स्त्रीरत्न - Powered by Maaax';
