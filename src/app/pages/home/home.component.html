@@ -222,7 +222,7 @@
         </a>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+      <div class="product-grid">
         @for (tile of displayCategories(); track tile.id) {
           <a
             [routerLink]="tile.routerLink"
@@ -369,7 +369,7 @@
     </div>
 
     @if (loading()) {
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+      <div class="product-grid">
         @for (_ of skeletonCount; track $index) {
           <app-skeleton-loader type="product-card" />
         }
@@ -383,7 +383,7 @@
         <p class="text-sm text-gray-500">We're curating the next collection just for you.</p>
       </div>
     } @else {
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+      <div class="product-grid">
         @for (product of featuredProducts(); track product.id) {
           <app-product-card [product]="product" />
         }
@@ -493,7 +493,7 @@
           </svg>
         </a>
       </div>
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+      <div class="product-grid">
         @for (product of bestSellers(); track product.id) {
           <app-product-card [product]="product" />
         }

@@ -55,28 +55,30 @@
       </a>
     </div>
   } @else {
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+    <div class="product-grid">
       @for (item of items(); track item.productId) {
-        <div class="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl
-                    border border-gray-100 hover:border-gold/20 transition-all duration-500
+        <div class="product-card group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl
+                    border border-gray-100 hover:border-gold/30 transition-all duration-500
                     hover:-translate-y-1">
           <a [routerLink]="['/product', item.productId]"
              class="block relative aspect-square bg-gradient-to-br from-cream via-white to-cream cursor-pointer">
             <img [src]="item.image" [alt]="item.name"
-                 class="w-full h-full object-contain p-4 transition-all duration-700 group-hover:scale-110"
-                 loading="lazy" />
+                 class="absolute inset-0 w-full h-full object-contain p-3 sm:p-4
+                        transition-transform duration-700 ease-out group-hover:scale-105"
+                 loading="lazy" decoding="async" />
             @if (!item.inStock) {
               <div class="absolute inset-0 bg-white/70 backdrop-blur-[2px] flex items-center justify-center">
-                <span class="px-4 py-2 bg-gray-900/90 text-white text-xs font-semibold rounded-full uppercase tracking-wider">
+                <span class="px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-900/90 text-white text-[10px] sm:text-xs
+                             font-semibold rounded-full uppercase tracking-wider">
                   Out of Stock
                 </span>
               </div>
             }
-            <!-- Remove from wishlist -->
             <button
               (click)="removeItem($event, item.productId)"
               aria-label="Remove from favourites"
-              class="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full
+              class="absolute top-2 right-2 sm:top-3 sm:right-3 w-8 h-8 sm:w-9 sm:h-9
+                     bg-white/95 backdrop-blur-sm rounded-full z-10
                      flex items-center justify-center shadow-md hover:shadow-lg hover:bg-white
                      transition-all cursor-pointer">
               <svg class="w-4 h-4 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
@@ -85,29 +87,29 @@
             </button>
           </a>
 
-          <div class="p-4">
+          <div class="p-3 sm:p-4">
             @if (item.categoryName) {
-              <p class="text-[11px] text-gold font-semibold uppercase tracking-[0.15em] mb-1.5">
+              <p class="text-[10px] sm:text-[11px] text-gold font-semibold uppercase tracking-[0.15em] mb-1 truncate">
                 {{ item.categoryName }}
               </p>
             }
             <a [routerLink]="['/product', item.productId]"
-               class="font-heading text-sm lg:text-base font-semibold text-gray-900 line-clamp-2
-                      hover:text-maroon transition-colors cursor-pointer">
+               class="block font-heading text-sm sm:text-base font-semibold text-gray-900 line-clamp-2
+                      leading-snug hover:text-maroon transition-colors cursor-pointer min-h-[2.6em]">
               {{ item.name }}
             </a>
-            <div class="flex items-baseline gap-2 mt-3">
-              <span class="text-base lg:text-lg font-bold text-maroon">{{ item.price | inr }}</span>
+            <div class="flex items-baseline gap-2 mt-2 sm:mt-3">
+              <span class="text-base sm:text-lg font-bold text-maroon">{{ item.price | inr }}</span>
               @if (item.originalPrice && item.originalPrice > item.price) {
-                <span class="text-xs text-gray-400 line-through">{{ item.originalPrice | inr }}</span>
+                <span class="text-[11px] sm:text-xs text-gray-400 line-through">{{ item.originalPrice | inr }}</span>
               }
             </div>
 
             <button
               (click)="moveToCart(item)"
               [disabled]="!item.inStock"
-              class="mt-3 w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5
-                     bg-gradient-to-r from-maroon to-maroon-dark text-white text-xs font-semibold
+              class="mt-2 sm:mt-3 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5
+                     bg-gradient-to-r from-maroon to-maroon-dark text-white text-[11px] sm:text-xs font-semibold
                      rounded-full shadow-md shadow-maroon/20
                      hover:shadow-lg hover:-translate-y-0.5
                      disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0

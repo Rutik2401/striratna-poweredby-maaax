@@ -40,6 +40,13 @@
     height: auto;
   }
 
+  /* When an image is absolutely sized by a parent (aspect ratio / w-full h-full),
+     keep it filling the box — don't let the default h:auto override the sizing. */
+  img.object-cover,
+  img.object-contain {
+    height: 100%;
+  }
+
   /* Inputs / selects scale on small screens but stay touch-friendly */
   input, select, textarea, button {
     font-family: inherit;
@@ -53,7 +60,13 @@
     }
   }
 
-  /* Container helper: applies safe padding + max width */
+  /* ==========================================================
+     LAYOUT UTILITIES (spacing system)
+     Section     : py-8  md:py-12 lg:py-16
+     Container   : px-4  sm:px-6  lg:px-8   max-w-7xl
+     Card padding: p-3   sm:p-4
+     Grid gaps   : gap-3 sm:gap-4 md:gap-6
+     ========================================================== */
   .container-page {
     width: 100%;
     max-width: 80rem;
@@ -69,6 +82,28 @@
     @media (min-width: 1024px) {
       padding-left: 2rem;
       padding-right: 2rem;
+    }
+  }
+
+  .section {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    @media (min-width: 768px) { padding-top: 3rem; padding-bottom: 3rem; }
+    @media (min-width: 1024px) { padding-top: 4rem; padding-bottom: 4rem; }
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    @media (min-width: 640px) { gap: 1rem; }
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1.5rem;
     }
   }
 
@@ -165,6 +200,115 @@
 @keyframes sparkleTwinkle {
   0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
   50% { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+
+/* ==========================================================
+   GLOBAL BUTTON SYSTEM (luxury SaaS)
+   .btn-primary  : solid maroon CTA
+   .btn-gold     : gold gradient CTA
+   .btn-ghost    : white / bordered secondary
+   Small variants: append --sm (shorter padding)
+   ========================================================== */
+.btn-primary,
+.btn-gold,
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1;
+  border-radius: 9999px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease,
+              background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  white-space: nowrap;
+  min-height: 44px; /* touch-friendly */
+}
+@media (min-width: 640px) {
+  .btn-primary, .btn-gold, .btn-ghost {
+    padding: 0.875rem 1.75rem;
+    font-size: 0.9375rem;
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #800020, #600018);
+  color: #ffffff;
+  box-shadow: 0 10px 25px -10px rgba(128, 0, 32, 0.45);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 35px -12px rgba(128, 0, 32, 0.55);
+}
+.btn-primary:active { transform: scale(0.97); }
+
+.btn-gold {
+  background: linear-gradient(135deg, #D4AF37, #B8960F);
+  color: #ffffff;
+  box-shadow: 0 10px 25px -10px rgba(212, 175, 55, 0.5);
+}
+.btn-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 35px -12px rgba(212, 175, 55, 0.6);
+}
+.btn-gold:active { transform: scale(0.97); }
+
+.btn-ghost {
+  background: #ffffff;
+  color: #800020;
+  border: 1.5px solid rgba(128, 0, 32, 0.15);
+}
+.btn-ghost:hover {
+  border-color: #D4AF37;
+  color: #B8960F;
+  transform: translateY(-1px);
+}
+
+/* Small-button variant */
+.btn-primary--sm, .btn-gold--sm, .btn-ghost--sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  min-height: 36px;
+}
+
+/* ==========================================================
+   SAFE-AREA + FAB LAYER
+   Used by WhatsApp FAB and sticky mobile CTA to respect iOS
+   home-indicator and stay clear of each other.
+   ========================================================== */
+.safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px));
+}
+.fab-anchor {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+}
+@media (min-width: 640px) {
+  .fab-anchor {
+    right: 1.5rem;
+    bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+/* Lift FAB above mobile sticky checkout bar */
+.has-sticky-cta .fab-anchor {
+  bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* ==========================================================
+   PRODUCT CARD polish (shared)
+   ========================================================== */
+.product-card {
+  /* Prevent image pseudo-elements from escaping rounded corners */
+  will-change: transform;
+}
+.product-card img {
+  /* Ensure jewellery images always render cleanly inside the aspect box */
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 /* Empty-state bag illustration */

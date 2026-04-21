@@ -151,7 +151,7 @@
 
   <!-- Products Grid -->
   @if (loading()) {
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+    <div class="product-grid">
       @for (_ of skeletonSlots; track $index) {
         <app-skeleton-loader type="product-card" />
       }
@@ -176,7 +176,7 @@
       </button>
     </div>
   } @else if (viewMode() === 'grid') {
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+    <div class="product-grid">
       @for (product of filteredProducts(); track product.id) {
         <app-product-card [product]="product" />
       }
