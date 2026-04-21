@@ -310,6 +310,15 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  @HostListener('document:pointerdown', ['$event'])
+  onDocumentPointerDown(event: PointerEvent): void {
+    if (!this.notificationsOpen()) return;
+    const target = event.target as HTMLElement | null;
+    if (target && !target.closest('.admin-notif')) {
+      this.notificationsOpen.set(false);
+    }
+  }
+
   markAllAsRead(): void {
     const ids = new Set(this.notifications().map((n) => n.id));
     this.readNotificationIds.set(ids);

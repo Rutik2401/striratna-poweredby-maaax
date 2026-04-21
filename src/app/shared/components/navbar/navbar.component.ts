@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CartService } from '../../../core/services/cart.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 interface NavLink {
   readonly path: string;
@@ -19,11 +20,15 @@ interface NavLink {
 export class NavbarComponent {
   private readonly cartService = inject(CartService);
   private readonly wishlistService = inject(WishlistService);
+  private readonly authService = inject(AuthService);
 
   readonly cartCount = this.cartService.itemCount;
   readonly wishlistCount = this.wishlistService.count;
   readonly mobileOpen = signal(false);
   readonly scrolled = signal(false);
+  readonly adminRoute = computed(() =>
+    this.authService.isLoggedIn() ? '/admin/dashboard' : '/admin/login',
+  );
 
   readonly navLinks: readonly NavLink[] = [
     { path: '/', label: 'Home' },

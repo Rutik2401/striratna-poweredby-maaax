@@ -727,40 +727,57 @@
   &__backdrop {
     position: fixed;
     inset: 0;
-    z-index: 40;
+    z-index: 55;
+    background: rgba(17, 24, 39, 0.35);
+    backdrop-filter: blur(2px);
+    animation: notifBackdrop 0.2s ease-out;
 
-    @media (min-width: 640px) {
+    @media (min-width: 1024px) {
       background: transparent;
-    }
-
-    @media (max-width: 639px) {
-      background: rgba(17, 24, 39, 0.4);
-      backdrop-filter: blur(2px);
+      backdrop-filter: none;
+      animation: none;
     }
   }
 
+  /* Default (desktop ≥1024px): dropdown anchored under the bell. */
   &__panel {
     position: absolute;
     top: calc(100% + 0.625rem);
     right: 0;
-    width: 360px;
+    width: 380px;
     max-width: calc(100vw - 2rem);
+    max-height: min(70vh, 560px);
+    display: flex;
+    flex-direction: column;
     background: #ffffff;
     border: 1px solid rgba(0, 0, 0, 0.05);
     border-radius: 1rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-    z-index: 50;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    z-index: 60;
     overflow: hidden;
     animation: notifOpen 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 
-    @media (max-width: 639px) {
+    /* Tablet: fixed full-width-ish card pinned below topbar so it
+       never overlaps page controls (Add Product, filters, etc.). */
+    @media (max-width: 1023px) {
       position: fixed;
-      top: auto;
-      bottom: 1rem;
-      left: 1rem;
+      top: calc(4.5rem + env(safe-area-inset-top, 0px));
       right: 1rem;
+      left: auto;
+      width: 420px;
+      max-width: calc(100vw - 2rem);
+      max-height: calc(100vh - 6rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Mobile: anchor top, full-width with gutter. Scrolls inside. */
+    @media (max-width: 639px) {
+      top: calc(4rem + env(safe-area-inset-top, 0px));
+      left: 0.75rem;
+      right: 0.75rem;
       width: auto;
       max-width: none;
+      border-radius: 1rem;
+      animation: notifOpenMobile 0.24s cubic-bezier(0.22, 1, 0.36, 1);
     }
   }
 
@@ -790,9 +807,22 @@
   }
 
   &__list {
+    flex: 1 1 auto;
+    min-height: 0;
     max-height: 420px;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
+
+    @media (max-width: 1023px) {
+      max-height: none; /* panel itself is capped; list fills remaining space */
+    }
+  }
+
+  &__header,
+  &__footer {
+    flex-shrink: 0;
   }
 
   &__empty {
@@ -919,6 +949,22 @@
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+@keyframes notifOpenMobile {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes notifBackdrop {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 // ========== QUICK ACTIONS ==========
